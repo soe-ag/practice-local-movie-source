@@ -26,10 +26,12 @@ onMounted(async () => {
 
 <template>
   <div>
-    <h1 class="text-3xl">Popular Movies</h1>
-    <div v-for="movie in movies" :key="movie.id">
-      <h2>{{ movie.title }}</h2>
-      <NuxtImg :src="`https://image.tmdb.org/t/p/w300${movie.poster_path}`" />
+    <div class="text-4xl text-red b-1">Popular Movies</div>
+    <div class="grid grid-cols-5 gap-2 justify-center items-center m-auto">
+      <div v-for="movie in movies" :key="movie.id" class="m-auto">
+        <h2>{{ movie.title }}</h2>
+        <NuxtImg :src="`https://image.tmdb.org/t/p/w300${movie.poster_path}`" />
+      </div>
     </div>
   </div>
 </template>

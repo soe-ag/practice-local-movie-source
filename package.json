@@ -14,5 +14,9 @@
     "nuxt": "^3.13.2",
     "vue": "latest",
     "vue-router": "latest"
+  },
+  "devDependencies": {
+    "@unocss/nuxt": "^0.63.4",
+    "unocss": "^0.63.4"
   }
 }
