@@ -26,6 +26,8 @@ onMounted(async () => {
 
 <template>
   <div>
+    <Button label="Check" icon="pi pi-check" />
+
     <div class="text-4xl text-red b-1">Popular Movies</div>
     <div class="grid grid-cols-5 gap-2 justify-center items-center m-auto">
       <div v-for="movie in movies" :key="movie.id" class="m-auto">
