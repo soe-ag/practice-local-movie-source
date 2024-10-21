@@ -12,7 +12,12 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ["@nuxt/image", "@unocss/nuxt", "@primevue/nuxt-module"],
+  modules: [
+    "@nuxt/image",
+    "@unocss/nuxt",
+    "@primevue/nuxt-module",
+    "@nuxt/eslint",
+  ],
   // primevue: {
   //   components: {
   //     include: "*",
