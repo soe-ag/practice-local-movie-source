@@ -80,7 +80,7 @@ const handleAdd = (item: SaveType) => {
           />
         </div>
       </div>
-      <div class="text-sm my-1">
+      <div class="my-1">
         {{ item.title ?? item.name }}
         {{
           item.first_air_date

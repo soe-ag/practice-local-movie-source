@@ -13,19 +13,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    class="bg-[url('/images/pexels-pavel-danilyuk-7234404.jpg')] bg-cover h-100vh"
-  >
-    <Button label="Back to Home" icon="i-material-symbols-arrow-back-2-rounded"
-      ><NuxtLink to="/" class="text-white no-underline"
-        >Back to Home</NuxtLink
-      ></Button
-    >
+  <div>
     <div>
-      <div>This is the saved page</div>
       <div
         v-if="saveList.length"
-        class="grid grid-cols-5 gap-2 justify-center items-center m-auto"
+        class="grid grid-cols-5 gap-2 justify-center items-center m-4"
       >
         <div
           v-for="item in saveList"

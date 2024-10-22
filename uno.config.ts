@@ -27,7 +27,7 @@ export default defineConfig({
     presetWebFonts({
       provider: "google",
       fonts: {
-        sans: "Poppins",
+        sans: "Rethink Sans",
         mono: ["Fira Code", "Fira Mono:400,700"],
       },
     }),
