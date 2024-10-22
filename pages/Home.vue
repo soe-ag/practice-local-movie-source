@@ -24,6 +24,9 @@ const menuItems = ref([
 ]);
 
 const popularMovies = ref<ListType[]>([]);
+const popularTotal = ref(0);
+const popularCurrentPage = ref(1);
+
 const config = useRuntimeConfig();
 
 const fetchPopularMovies = async (page: number) => {
@@ -39,14 +42,17 @@ const fetchPopularMovies = async (page: number) => {
   );
 
   popularMovies.value = popularData.results;
+  popularTotal.value = popularData.total_results;
 };
 
 const isShowSearchResult = ref(false);
-const searchResults = ref<ListType[]>([]);
+
 const searchQuery = ref("");
 let searchQueryLabel = "";
-const totalResults = ref(0);
-const currentPage = ref(1);
+
+const searchResults = ref<ListType[]>([]);
+const searchTotal = ref(0);
+const searchCurrentPage = ref(1);
 
 // const searchMovies = async () => {
 // catch (error) {
@@ -80,7 +86,7 @@ const fetchSearchResults = async (page: number) => {
   searchResults.value = searchData.results.filter(
     (item: { media_type: string }) => item.media_type !== "person"
   );
-  totalResults.value = searchData.total_results; // for pagination
+  searchTotal.value = searchData.total_results; // for pagination
 };
 
 // };
@@ -91,10 +97,16 @@ const handleEnter = async (event: KeyboardEvent) => {
   }
 };
 
-const handlePageChange = async (event: PageState) => {
+const handlePopularPageChange = async (event: PageState) => {
   console.log(event);
-  currentPage.value = event.page + 1;
-  await fetchSearchResults(currentPage.value);
+  popularCurrentPage.value = event.page + 1;
+  await fetchPopularMovies(popularCurrentPage.value);
+};
+
+const handleSearchPageChange = async (event: PageState) => {
+  console.log(event);
+  searchCurrentPage.value = event.page + 1;
+  await fetchSearchResults(searchCurrentPage.value);
 };
 </script>
 
@@ -125,23 +137,23 @@ const handlePageChange = async (event: PageState) => {
     <div v-if="popularMovies.length > 0 && !isShowSearchResult">
       <div class="text-3xl text-red b-1 b-amber">Popular Movies</div>
       <ListDumb :list="popularMovies" />
+      <Paginator
+        :rows="20"
+        :total-records="popularTotal"
+        @page="handlePopularPageChange"
+      />
     </div>
 
     <div v-if="searchResults.length > 0 && isShowSearchResult">
       <div class="text-3xl text-red b-1 b-amber">
         Search Results for '{{ searchQueryLabel }}'
       </div>
-      <Paginator
-        :rows="20"
-        :total-records="totalResults"
-        @page="handlePageChange"
-      />
       <ListDumb :list="searchResults" />
-      <div>total result is {{ totalResults }}, {{ currentPage }}</div>
+      <div>total result is {{ searchTotal }}, {{ searchCurrentPage }}</div>
       <Paginator
         :rows="20"
-        :total-records="totalResults"
-        @page="handlePageChange"
+        :total-records="searchTotal"
+        @page="handleSearchPageChange"
       />
     </div>
   </div>

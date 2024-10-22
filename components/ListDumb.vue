@@ -1,11 +1,14 @@
 <script setup lang="ts">
+import type { SaveType } from "~/utils/type";
+
 export type ListType = {
   id: number;
   title?: string;
   name?: string;
 
   poster_path: string;
-  first_air_date: string;
+  first_air_date?: string;
+  release_date?: string;
   media_type: string;
   vote_average: number;
 };
@@ -14,8 +17,21 @@ const props = defineProps<{
   list: ListType[];
 }>();
 
-const handleAdd = () => {
-  console.log("Add");
+const handleAdd = (item: SaveType) => {
+  const storedList = localStorage.getItem("movieList");
+  const movieList: SaveType[] = storedList ? JSON.parse(storedList) : [];
+
+  const itemSize = new Blob([JSON.stringify(item)]).size; // Size in bytes
+  console.log(`Item size: ${itemSize} bytes`);
+
+  // to avoid duplicates
+  if (!movieList.some((storedItem) => storedItem.id === item.id)) {
+    movieList.push(item);
+    localStorage.setItem("movieList", JSON.stringify(movieList));
+    console.log("Item added to local storage:", item);
+  } else {
+    console.log("Item already exists in local storage");
+  }
 };
 </script>
 
@@ -52,14 +68,26 @@ const handleAdd = () => {
           </div>
           <div
             class="i-material-symbols-add-rounded text-gray text-2xl cursor-pointer hover:text-green"
-            @click="handleAdd"
+            @click="
+              handleAdd({
+                id: item.id,
+                title: item.title,
+                name: item.name,
+                poster_path: item.poster_path,
+                vote_average: item.vote_average,
+              })
+            "
           />
         </div>
       </div>
       <div class="text-sm my-1">
         {{ item.title ?? item.name }}
         {{
-          item.first_air_date ? `(${item.first_air_date.split("-")[0]})` : ""
+          item.first_air_date
+            ? `(${item.first_air_date.split("-")[0]})`
+            : item.release_date
+            ? `(${item.release_date.split("-")[0]})`
+            : ""
         }}
       </div>
     </div>
