@@ -111,7 +111,7 @@ const handleSearchPageChange = async (event: PageState) => {
     </div>
 
     <div v-if="popularMovies.length > 0 && !isShowSearchResult">
-      <div class="text-3xl text-red b-1 b-amber">Popular Movies</div>
+      <div class="text-2xl text-red my-2 text-center">~ Popular Movies ~</div>
       <ListDumb :list="popularMovies" />
       <Paginator
         :rows="20"

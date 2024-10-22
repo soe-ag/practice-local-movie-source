@@ -36,7 +36,7 @@ const handleAdd = (item: SaveType) => {
 </script>
 
 <template>
-  <div class="grid grid-cols-5 gap-2 justify-center items-center m-auto">
+  <div class="grid grid-cols-5 gap-2 justify-center items-center m-auto w-70vw">
     <div
       v-for="item in props.list"
       :key="item.id"
@@ -49,10 +49,15 @@ const handleAdd = (item: SaveType) => {
               ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
               : '/images/default-movie-poster.jpg'
           "
-          class="rounded-1 b-10 b-gray-1"
+          class="relative rounded-1 b-10 b-gray-1"
           width="150"
           height="210"
         />
+        <div class="absolute w-36 my-1 text-xs flex justify-end">
+          <div class="bg-green rounded-full px-2 w-fit mr-0">
+            {{ item.vote_average.toFixed(1) }}
+          </div>
+        </div>
         <div class="flex flex-col gap-2 justify-between">
           <div>
             <Chip
@@ -60,24 +65,29 @@ const handleAdd = (item: SaveType) => {
               :label="item.media_type"
               class="h-6 text-xs w-fit mb-1"
             />
-            <Chip
+            <!-- <Chip
               v-if="item.vote_average"
               :label="item.vote_average.toFixed(1)"
               class="h-6 text-xs bg-blue!"
+            /> -->
+          </div>
+          <div class="w-8">
+            <div
+              class="i-material-symbols-favorite text-gray text-xl cursor-pointer hover:text-red mb-1 mx-auto"
+            />
+            <div
+              class="i-material-symbols-add-rounded text-gray text-2xl cursor-pointer hover:text-green mx-auto"
+              @click="
+                handleAdd({
+                  id: item.id,
+                  title: item.title,
+                  name: item.name,
+                  poster_path: item.poster_path,
+                  vote_average: item.vote_average,
+                })
+              "
             />
           </div>
-          <div
-            class="i-material-symbols-add-rounded text-gray text-2xl cursor-pointer hover:text-green"
-            @click="
-              handleAdd({
-                id: item.id,
-                title: item.title,
-                name: item.name,
-                poster_path: item.poster_path,
-                vote_average: item.vote_average,
-              })
-            "
-          />
         </div>
       </div>
       <div class="my-1">

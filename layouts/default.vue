@@ -5,36 +5,66 @@ const menuItems = ref([
     icon: "i-material-symbols-home-rounded",
     route: "/",
   },
+
   {
-    label: "Nuxt",
-    icon: "i-logos-nuxt-icon",
-    route: "/sample",
-  },
-  {
-    label: "Save",
+    label: "Watch List",
     icon: "i-material-symbols-save-rounded",
     route: "/save",
+  },
+  {
+    label: "Favorite",
+    icon: "i-material-symbols-favorite",
+    route: "/favorite",
   },
   {
     label: "Others",
     icon: "i-material-symbols-movie-filter",
     route: "/others",
   },
+  {
+    label: "Nuxt",
+    icon: "i-logos-nuxt-icon",
+    route: "/sample",
+  },
 ]);
+
+const route = useRoute();
 </script>
 
 <template>
   <div
-    class="bg-[url('/images/pexels-pavel-danilyuk-7234404.jpg')] bg-cover bg-fixed bg-blend-overlay bg-center bg-no-repeat h-100vh bg-gray-8 h-100vh"
+    class="bg-[url('/images/pexels-pavel-danilyuk-7234404.jpg')] bg-cover bg-fixed bg-blend-overlay bg-center bg-no-repeat h-screen bg-gray-800"
   >
-    <nav class="flex justify-start gap-2 items-center p-1">
-      <div v-for="menu in menuItems" :key="menu.label">
+    <nav class="grid grid-cols-5 items-center p-1">
+      <!-- Left Menu Items -->
+      <div class="col-span-4 flex gap-2">
+        <div v-for="menu in menuItems.slice(0, 4)" :key="menu.label">
+          <NuxtLink
+            :to="menu.route"
+            :class="{
+              'text-blue-4 ': route.path === menu.route,
+              'text-white hover:bg-blue-5': route.path !== menu.route,
+            }"
+            class="no-underline rounded-1 m-1 w-fit px-2 h-8 flex justify-center items-center gap-1"
+          >
+            <div :class="menu.icon" />
+            <div class="text-lg">{{ menu.label }}</div>
+          </NuxtLink>
+        </div>
+      </div>
+
+      <!-- Right Menu Item -->
+      <div class="col-span-1 flex justify-end">
         <NuxtLink
-          :to="menu.route"
-          class="text-white text-lg no-underline rounded-1 m-1 w-25 h-8 flex justify-center items-center gap-1 hover:bg-blue-6"
+          :to="menuItems[4].route"
+          :class="{
+            'text-green-4 ': route.path === menuItems[4].route,
+            'text-white hover:bg-blue-5': route.path !== menuItems[4].route,
+          }"
+          class="no-underline rounded-1 m-1 w-fit px-2 h-8 flex justify-center items-center gap-1"
         >
-          <div :class="menu.icon" />
-          <div>{{ menu.label }}</div>
+          <div :class="menuItems[4].icon" class="text-xs" />
+          <div class="text-lg">{{ menuItems[4].label }}</div>
         </NuxtLink>
       </div>
     </nav>
