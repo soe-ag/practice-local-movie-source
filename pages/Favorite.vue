@@ -10,6 +10,23 @@ onMounted(() => {
     saveList.value = JSON.parse(storedList);
   }
 });
+
+const handleWatchListRemove = (id: number) => {
+  console.log(id);
+  const storedWatchList = localStorage.getItem("watchList");
+
+  if (storedWatchList) {
+    const watchList = JSON.parse(storedWatchList);
+    const updatedWatchList = watchList.filter(
+      (item: { id: number }) => item.id !== id
+    );
+
+    localStorage.setItem("watchList", JSON.stringify(updatedWatchList));
+    console.log(`Item with id ${id} has been removed from the watch list.`);
+  } else {
+    console.log("No watch list found in localStorage.");
+  }
+};
 </script>
 
 <template>
@@ -43,6 +60,10 @@ onMounted(() => {
                   class="h-6 text-xs bg-blue!"
                 />
               </div>
+              <div
+                class="i-material-symbols-remove-rounded text-gray text-2xl cursor-pointer hover:text-green"
+                @click="handleWatchListRemove(item.id)"
+              />
               <div
                 class="i-material-symbols-add-rounded text-gray text-2xl cursor-pointer hover:text-green"
               />

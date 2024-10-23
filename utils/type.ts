@@ -6,3 +6,5 @@ export type SaveType = {
   poster_path: string;
   vote_average: number;
 };
+
+export type LocalList = "watchList" | "favoriteList";

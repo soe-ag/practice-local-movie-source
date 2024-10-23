@@ -2,25 +2,29 @@
 import { ref, onMounted } from "vue";
 import type { SaveType } from "~/utils/type";
 
-const saveList = ref<SaveType[]>([]);
+const watchList = ref<SaveType[]>([]);
 
 onMounted(() => {
   const storedList = localStorage.getItem("watchList");
   if (storedList) {
-    saveList.value = JSON.parse(storedList);
+    watchList.value = JSON.parse(storedList);
   }
 });
+
+const handleWatchListRemove = (id: number) => {
+  watchList.value = removeFromList(id, "watchList");
+};
 </script>
 
 <template>
   <div>
     <div>
       <div
-        v-if="saveList.length"
+        v-if="watchList.length"
         class="grid grid-cols-5 gap-2 justify-center items-center m-4"
       >
         <div
-          v-for="item in saveList"
+          v-for="item in watchList"
           :key="item.id"
           class="w-50 h-70 m-2 p-1 flex flex-col"
         >
@@ -43,9 +47,12 @@ onMounted(() => {
                   class="h-6 text-xs bg-blue!"
                 />
               </div>
-              <div
-                class="i-material-symbols-add-rounded text-gray text-2xl cursor-pointer hover:text-green"
-              />
+              <div class="flex flex-col gap-2">
+                <div
+                  class="i-material-symbols-remove-rounded text-gray text-2xl cursor-pointer hover:text-green"
+                  @click="() => handleWatchListRemove(item.id)"
+                />
+              </div>
             </div>
           </div>
           <div class="text-sm my-1">

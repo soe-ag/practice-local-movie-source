@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { SaveType } from "~/utils/type";
-
 export type ListType = {
   id: number;
   title?: string;
@@ -16,40 +14,6 @@ export type ListType = {
 const props = defineProps<{
   list: ListType[];
 }>();
-
-const handleWatchListAdd = (item: SaveType) => {
-  const storedList = localStorage.getItem("watchList");
-  const watchList: SaveType[] = storedList ? JSON.parse(storedList) : [];
-
-  const itemSize = new Blob([JSON.stringify(item)]).size; // Size in bytes
-  console.log(`Item size: ${itemSize} bytes`);
-
-  // to avoid duplicates
-  if (!watchList.some((storedItem) => storedItem.id === item.id)) {
-    watchList.push(item);
-    localStorage.setItem("watchList", JSON.stringify(watchList));
-    console.log("Item added to local storage:", item);
-  } else {
-    console.log("Item already exists in local storage");
-  }
-};
-
-const handleFavoriteAdd = (item: SaveType) => {
-  const storedList = localStorage.getItem("favoriteList");
-  const favoriteList: SaveType[] = storedList ? JSON.parse(storedList) : [];
-
-  const itemSize = new Blob([JSON.stringify(item)]).size; // Size in bytes
-  console.log(`Item size: ${itemSize} bytes`);
-
-  // to avoid duplicates
-  if (!favoriteList.some((storedItem) => storedItem.id === item.id)) {
-    favoriteList.push(item);
-    localStorage.setItem("favoriteList", JSON.stringify(favoriteList));
-    console.log("Item added to local storage:", item);
-  } else {
-    console.log("Item already exists in local storage");
-  }
-};
 </script>
 
 <template>
@@ -91,27 +55,12 @@ const handleFavoriteAdd = (item: SaveType) => {
           <div class="w-8">
             <div
               class="i-material-symbols-favorite text-gray text-xl cursor-pointer hover:text-red mb-1 mx-auto"
-              @click="
-                handleFavoriteAdd({
-                  id: item.id,
-                  title: item.title,
-                  name: item.name,
-                  poster_path: item.poster_path,
-                  vote_average: item.vote_average,
-                })
-              "
+              @click="() => addToList(item, 'favoriteList')"
             />
+
             <div
               class="i-material-symbols-add-rounded text-gray text-2xl cursor-pointer hover:text-green mx-auto"
-              @click="
-                handleWatchListAdd({
-                  id: item.id,
-                  title: item.title,
-                  name: item.name,
-                  poster_path: item.poster_path,
-                  vote_average: item.vote_average,
-                })
-              "
+              @click="() => addToList(item, 'watchList')"
             />
           </div>
         </div>
