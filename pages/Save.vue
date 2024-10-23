@@ -5,7 +5,7 @@ import type { SaveType } from "~/utils/type";
 const saveList = ref<SaveType[]>([]);
 
 onMounted(() => {
-  const storedList = localStorage.getItem("movieList");
+  const storedList = localStorage.getItem("watchList");
   if (storedList) {
     saveList.value = JSON.parse(storedList);
   }

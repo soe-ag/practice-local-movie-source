@@ -43,7 +43,7 @@ const route = useRoute();
             :to="menu.route"
             :class="{
               'text-blue-4 ': route.path === menu.route,
-              'text-white hover:bg-blue-5': route.path !== menu.route,
+              'text-white hover:text-blue-4': route.path !== menu.route,
             }"
             class="no-underline rounded-1 m-1 w-fit px-2 h-8 flex justify-center items-center gap-1"
           >
@@ -59,7 +59,7 @@ const route = useRoute();
           :to="menuItems[4].route"
           :class="{
             'text-green-4 ': route.path === menuItems[4].route,
-            'text-white hover:bg-blue-5': route.path !== menuItems[4].route,
+            'text-white hover:text-green-4': route.path !== menuItems[4].route,
           }"
           class="no-underline rounded-1 m-1 w-fit px-2 h-8 flex justify-center items-center gap-1"
         >
