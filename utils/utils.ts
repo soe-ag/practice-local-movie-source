@@ -1,4 +1,4 @@
-import type { LocalList, SaveType } from "./type";
+import type { Item, LocalList, SaveType } from "./type";
 
 export const addToList = (item: SaveType, listType: LocalList) => {
   const storedList = localStorage.getItem(listType);
@@ -31,5 +31,19 @@ export const removeFromList = (id: number, listType: LocalList): SaveType[] => {
   } else {
     console.log("No list found in localStorage.");
     return [];
+  }
+};
+
+// firebase api call function
+export const addMovieToWatchListDb = async (movie: Item) => {
+  const { data, error } = await useFetch("/api/watchList", {
+    method: "POST",
+    body: movie,
+  });
+
+  if (error.value) {
+    console.error("Error adding movie:", error.value);
+  } else {
+    console.log("No erro at api function", data.value);
   }
 };

@@ -7,4 +7,12 @@ export type SaveType = {
   vote_average: number;
 };
 
+export type Item = {
+  id: number;
+  title: string;
+  posterUrl: string;
+  rating: number;
+  release: number; // year only
+};
+
 export type LocalList = "watchList" | "favoriteList";

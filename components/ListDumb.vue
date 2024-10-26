@@ -14,10 +14,24 @@ export type ListType = {
 const props = defineProps<{
   list: ListType[];
 }>();
+
+// const testing = async () => fetchMovies();
+
+const handleAddToWatchList = async (item: ListType) => {
+  const body = {
+    id: item.id,
+    title: "testing title ",
+    posterUrl: item.poster_path,
+    rating: item.vote_average,
+    release: 2010,
+  };
+  await addMovieToWatchListDb(body);
+};
 </script>
 
 <template>
   <div class="grid grid-cols-5 gap-2 justify-center items-center m-auto w-70vw">
+    <!-- <div>{{ testing }}</div> -->
     <div
       v-for="item in props.list"
       :key="item.id"
@@ -58,9 +72,13 @@ const props = defineProps<{
               @click="() => addToList(item, 'favoriteList')"
             />
 
-            <div
+            <!-- <div
               class="i-material-symbols-add-rounded text-gray text-2xl cursor-pointer hover:text-green mx-auto"
               @click="() => addToList(item, 'watchList')"
+            /> -->
+            <div
+              class="i-material-symbols-add-rounded text-gray text-2xl cursor-pointer hover:text-green mx-auto"
+              @click="() => handleAddToWatchList(item)"
             />
           </div>
         </div>
