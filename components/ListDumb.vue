@@ -1,37 +1,15 @@
 <script setup lang="ts">
-export type ListType = {
-  id: number;
-  title?: string;
-  name?: string;
-
-  poster_path: string;
-  first_air_date?: string;
-  release_date?: string;
-  media_type: string;
-  vote_average: number;
-};
+import type { DbMovie } from "~/utils/type";
 
 const props = defineProps<{
-  list: ListType[];
+  list: DbMovie[];
 }>();
 
 const client = useSupabaseClient();
 
-const addMovie = async () => {
-  const { data } = await client
-    .from("watchList")
-    .insert([
-      {
-        sourceId: 11,
-        title: "testing movie",
-        posterUrl: "/testingURL",
-        rating: 12.2,
-        release: 2021,
-      },
-    ])
-    .select();
-
-  console.log(data);
+const addMovie = async (item: DbMovie) => {
+  const { error } = await client.from("watchList").insert([item]);
+  console.log(error);
 };
 </script>
 
@@ -44,25 +22,21 @@ const addMovie = async () => {
     >
       <div class="flex gap-2">
         <NuxtImg
-          :src="
-            item.poster_path
-              ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
-              : '/images/default-movie-poster.jpg'
-          "
+          :src="item.posterUrl"
           class="relative rounded-1 b-10 b-gray-1"
           width="150"
           height="210"
         />
         <div class="absolute w-36 my-1 text-xs flex justify-end">
           <div class="bg-green rounded-full px-2 w-fit mr-0">
-            {{ item.vote_average.toFixed(1) }}
+            {{ item.rating }}
           </div>
         </div>
         <div class="flex flex-col gap-2 justify-between">
           <div>
             <Chip
-              v-if="item.media_type"
-              :label="item.media_type"
+              v-if="item.type"
+              :label="item.type"
               class="h-6 text-xs w-fit mb-1"
             />
             <!-- <Chip
@@ -74,25 +48,18 @@ const addMovie = async () => {
           <div class="w-8">
             <div
               class="i-material-symbols-favorite text-gray text-xl cursor-pointer hover:text-red mb-1 mx-auto"
-              @click="() => addToList(item, 'favoriteList')"
             />
 
             <div
               class="i-material-symbols-add-rounded text-gray text-2xl cursor-pointer hover:text-green mx-auto"
-              @click="() => addMovie()"
+              @click="() => addMovie(item)"
             />
           </div>
         </div>
       </div>
       <div class="my-1">
-        {{ item.title ?? item.name }}
-        {{
-          item.first_air_date
-            ? `(${item.first_air_date.split("-")[0]})`
-            : item.release_date
-            ? `(${item.release_date.split("-")[0]})`
-            : ""
-        }}
+        {{ item.title }}
+        {{ item.release }}
       </div>
     </div>
   </div>

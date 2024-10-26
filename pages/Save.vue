@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import type { SaveType } from "~/utils/type";
+import type { DbMovie } from "~/utils/type";
 
-const watchList = ref<SaveType[]>([]);
+const watchList = ref<DbMovie[]>([]);
 
-onMounted(() => {
-  const storedList = localStorage.getItem("watchList");
-  if (storedList) {
-    watchList.value = JSON.parse(storedList);
-  }
-});
+// onMounted(() => {
+//   const storedList = localStorage.getItem("watchList");
+//   if (storedList) {
+//     watchList.value = JSON.parse(storedList);
+//   }
+// });
 
-const handleWatchListRemove = (id: number) => {
-  watchList.value = removeFromList(id, "watchList");
-};
+// const handleWatchListRemove = (id: number) => {
+//   watchList.value = removeFromList(id, "watchList");
+// };
+
+const client = useSupabaseClient();
+const { data } = await client.from("watchList").select();
+watchList.value = data ? data : [];
 </script>
 
 <template>
@@ -21,7 +24,7 @@ const handleWatchListRemove = (id: number) => {
     <div>
       <div
         v-if="watchList.length"
-        class="grid grid-cols-5 gap-2 justify-center items-center m-4"
+        class="flex flex-wrap gap-2 justify-center items-center m-4"
       >
         <div
           v-for="item in watchList"
@@ -30,11 +33,7 @@ const handleWatchListRemove = (id: number) => {
         >
           <div class="flex gap-2">
             <NuxtImg
-              :src="
-                item.poster_path
-                  ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
-                  : '/images/default-movie-poster.jpg'
-              "
+              :src="item.posterUrl"
               class="rounded-1 b-10 b-gray-1"
               width="150"
               height="210"
@@ -42,8 +41,8 @@ const handleWatchListRemove = (id: number) => {
             <div class="flex flex-col gap-2 justify-between">
               <div>
                 <Chip
-                  v-if="item.vote_average"
-                  :label="item.vote_average.toFixed(1)"
+                  v-if="item.rating"
+                  :label="item.rating.toString()"
                   class="h-6 text-xs bg-blue!"
                 />
               </div>
@@ -56,7 +55,7 @@ const handleWatchListRemove = (id: number) => {
             </div>
           </div>
           <div class="text-sm my-1">
-            {{ item.title ?? item.name }}
+            {{ item.title }}
           </div>
         </div>
       </div>

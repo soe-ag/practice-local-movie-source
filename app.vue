@@ -1,18 +1,18 @@
 <script setup>
-const client = useSupabaseClient();
+// const client = useSupabaseClient();
 
-const movies = ref([]);
+// const movies = ref([]);
 
-async function getMovies() {
-  console.log("app fn is called");
-  const { data } = await client.from("watchList").select();
-  console.log(data);
-  movies.value = data;
-}
+// async function getMovies() {
+//   console.log("app fn is called");
+//   const { data } = await client.from("watchList").select();
+//   console.log(data);
+//   movies.value = data;
+// }
 
-onMounted(() => {
-  getMovies();
-});
+// onMounted(() => {
+//   getMovies();
+// });
 </script>
 
 <template>

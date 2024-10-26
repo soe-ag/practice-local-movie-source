@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { useRuntimeConfig } from "#app";
-import type { ListType } from "~/components/ListDumb.vue";
 import type { PageState } from "primevue/paginator";
+import type { DbMovie } from "~/utils/type";
 // definePageMeta({ layout: "default" });
 
-const popularMovies = ref<ListType[]>([]);
+const popularMovies = ref<DbMovie[]>([]);
 const popularTotal = ref(0);
 const popularCurrentPage = ref(1);
 
 const config = useRuntimeConfig();
 
 const fetchPopularMovies = async (page: number) => {
-  const popularData = await $fetch<SearchResponse>(
+  const popularData = await $fetch<RawList>(
     `https://api.themoviedb.org/3/movie/popular`,
     {
       params: {
@@ -22,7 +22,9 @@ const fetchPopularMovies = async (page: number) => {
     }
   );
 
-  popularMovies.value = popularData.results;
+  popularMovies.value = popularData.results.map((item) =>
+    convertToDbType(item)
+  );
   popularTotal.value = popularData.total_results;
 };
 
@@ -31,7 +33,7 @@ const isShowSearchResult = ref(false);
 const searchQuery = ref("");
 let searchQueryLabel = "";
 
-const searchResults = ref<ListType[]>([]);
+const searchResults = ref<DbMovie[]>([]);
 const searchTotal = ref(0);
 const searchCurrentPage = ref(1);
 
@@ -40,13 +42,13 @@ const searchCurrentPage = ref(1);
 //   console.error("Error searching for movies or TV shows:", error);
 // }
 
-interface SearchResponse {
-  results: ListType[];
+interface RawList {
+  results: RawMovie[];
   total_results: number;
 }
 
 const fetchSearchResults = async (page: number) => {
-  const searchData = await $fetch<SearchResponse>(
+  const searchData = await $fetch<RawList>(
     "https://api.themoviedb.org/3/search/multi",
     {
       params: {
@@ -64,9 +66,9 @@ const fetchSearchResults = async (page: number) => {
   searchQueryLabel = searchQuery.value; // for search query label
   // searchQuery.value = ""; if clear, pagination will not work
 
-  searchResults.value = searchData.results.filter(
-    (item: { media_type: string }) => item.media_type !== "person"
-  );
+  searchResults.value = searchData.results
+    .filter((item: { media_type: string }) => item.media_type !== "person")
+    .map((item) => convertToDbType(item));
   searchTotal.value = searchData.total_results; // for pagination
 };
 
