@@ -12,7 +12,9 @@
   "dependencies": {
     "@nuxt/eslint": "^0.6.0",
     "@nuxt/image": "^1.8.1",
+    "@nuxtjs/supabase": "^1.4.1",
     "@primevue/themes": "^4.1.1",
+    "@supabase/supabase-js": "^2.45.6",
     "nuxt": "^3.13.2",
     "primevue": "^4.1.1",
     "vue": "latest",

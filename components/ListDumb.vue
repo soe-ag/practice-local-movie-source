@@ -14,6 +14,25 @@ export type ListType = {
 const props = defineProps<{
   list: ListType[];
 }>();
+
+const client = useSupabaseClient();
+
+const addMovie = async () => {
+  const { data } = await client
+    .from("watchList")
+    .insert([
+      {
+        sourceId: 11,
+        title: "testing movie",
+        posterUrl: "/testingURL",
+        rating: 12.2,
+        release: 2021,
+      },
+    ])
+    .select();
+
+  console.log(data);
+};
 </script>
 
 <template>
@@ -60,7 +79,7 @@ const props = defineProps<{
 
             <div
               class="i-material-symbols-add-rounded text-gray text-2xl cursor-pointer hover:text-green mx-auto"
-              @click="() => addToList(item, 'watchList')"
+              @click="() => addMovie()"
             />
           </div>
         </div>

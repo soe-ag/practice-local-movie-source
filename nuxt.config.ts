@@ -17,6 +17,7 @@ export default defineNuxtConfig({
     "@unocss/nuxt",
     "@primevue/nuxt-module",
     "@nuxt/eslint",
+    "@nuxtjs/supabase",
   ],
   // primevue: {
   //   components: {
