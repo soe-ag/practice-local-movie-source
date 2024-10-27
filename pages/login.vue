@@ -5,8 +5,8 @@ definePageMeta({
 const supabase = useSupabaseClient();
 const router = useRouter();
 
-const email = ref<string>("soeag.m@gmail.com");
-const password = ref<string>("soeaungdev");
+const email = ref<string>("soeag.dev@gmail.com");
+const password = ref<string>("soeagdev");
 const showError = ref(false);
 
 const handleSignIn = async () => {

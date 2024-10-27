@@ -1,23 +1,26 @@
 <script setup lang="ts">
 import type { DbMovie } from "~/utils/type";
 
-const watchList = ref<DbMovie[]>([]);
-
 const client = useSupabaseClient();
-const getList = async () => {
-  const { data } = await client.from("watchList").select();
-  watchList.value = data ? data : [];
-};
 
-onMounted(() => {
-  getList();
+const { data, refresh } = await useAsyncData<DbMovie[]>(
+  "fetchWatchList",
+  async () => {
+    const { data } = await client.from("watchList").select();
+    return data as DbMovie[];
+  }
+);
+
+const watchList = computed<DbMovie[]>(() => {
+  return data.value ?? [];
 });
 
 const removeFromWatchList = async (id: number) => {
   console.log(id);
   const { error } = await client.from("watchList").delete().eq("id", id);
-  getList();
   console.log(error);
+
+  refresh();
 };
 </script>
 

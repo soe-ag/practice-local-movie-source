@@ -1,25 +1,26 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
 import type { DbMovie } from "~/utils/type";
 
 const client = useSupabaseClient();
 
-const saveList = ref<DbMovie[]>([]);
+const { data, refresh } = await useAsyncData<DbMovie[]>(
+  "favoriteList",
+  async () => {
+    const { data } = await client.from("favoriteList").select();
+    return data as DbMovie[];
+  }
+);
 
-const getList = async () => {
-  const { data } = await client.from("favoriteList").select();
-  saveList.value = data ? data : [];
-};
-
-onMounted(() => {
-  getList();
+const saveList = computed<DbMovie[]>(() => {
+  return data.value ?? [];
 });
 
 const removeFromFavoriteList = async (id: number) => {
   console.log(id);
   const { error } = await client.from("favoriteList").delete().eq("id", id);
-  getList();
   console.log(error);
+
+  refresh();
 };
 </script>
 
