@@ -1,80 +1,64 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import type { SaveType } from "~/utils/type";
+import type { DbMovie } from "~/utils/type";
 
-const saveList = ref<SaveType[]>([]);
+const client = useSupabaseClient();
+
+const saveList = ref<DbMovie[]>([]);
+
+const getList = async () => {
+  const { data } = await client.from("favoriteList").select();
+  saveList.value = data ? data : [];
+};
 
 onMounted(() => {
-  const storedList = localStorage.getItem("favoriteList");
-  if (storedList) {
-    saveList.value = JSON.parse(storedList);
-  }
+  getList();
 });
 
-const handleWatchListRemove = (id: number) => {
+const removeFromFavoriteList = async (id: number) => {
   console.log(id);
-  const storedWatchList = localStorage.getItem("watchList");
-
-  if (storedWatchList) {
-    const watchList = JSON.parse(storedWatchList);
-    const updatedWatchList = watchList.filter(
-      (item: { id: number }) => item.id !== id
-    );
-
-    localStorage.setItem("watchList", JSON.stringify(updatedWatchList));
-    console.log(`Item with id ${id} has been removed from the watch list.`);
-  } else {
-    console.log("No watch list found in localStorage.");
-  }
+  const { error } = await client.from("favoriteList").delete().eq("id", id);
+  getList();
+  console.log(error);
 };
 </script>
 
 <template>
-  <div>
-    <div>
+  <div class="py-2">
+    <div
+      v-if="saveList.length"
+      class="flex flex-wrap gap-2 justify-center items-center mx-4"
+    >
       <div
-        v-if="saveList.length"
-        class="grid grid-cols-5 gap-2 justify-center items-center m-4"
+        v-for="item in saveList"
+        :key="item.id"
+        class="w-50 h-70 m-2 p-1 flex flex-col max-md:w-36 max-md:h-58"
       >
-        <div
-          v-for="item in saveList"
-          :key="item.id"
-          class="w-50 h-70 m-2 p-1 flex flex-col"
-        >
-          <div class="flex gap-2">
-            <NuxtImg
-              :src="
-                item.poster_path
-                  ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
-                  : '/images/default-movie-poster.jpg'
-              "
-              class="rounded-1 b-10 b-gray-1"
-              width="150"
-              height="210"
-            />
-            <div class="flex flex-col gap-2 justify-between">
-              <div>
-                <Chip
-                  v-if="item.vote_average"
-                  :label="item.vote_average.toFixed(1)"
-                  class="h-6 text-xs bg-blue!"
-                />
+        <div class="flex gap-2">
+          <NuxtImg
+            :src="item.posterUrl"
+            class="rounded-1 w-35 max-md:w-30 max-md:h-45"
+          />
+          <div class="flex flex-col gap-2 justify-between">
+            <div>
+              <div
+                v-if="item.rating"
+                class="px-2 text-xs rounded-full bg-blue!"
+              >
+                {{ item.rating }}
               </div>
-              <div
-                class="i-material-symbols-remove-rounded text-gray text-2xl cursor-pointer hover:text-green"
-                @click="handleWatchListRemove(item.id)"
-              />
-              <div
-                class="i-material-symbols-add-rounded text-gray text-2xl cursor-pointer hover:text-green"
-              />
             </div>
-          </div>
-          <div class="text-sm my-1">
-            {{ item.title ?? item.name }}
+            <div
+              class="i-material-symbols-heart-minus text-gray text-xl max-md:text-lg cursor-pointer hover:text-red"
+              @click="removeFromFavoriteList(item.id)"
+            />
           </div>
         </div>
+        <div class="text-sm my-1">
+          {{ item.title }}
+        </div>
       </div>
-      <div v-else>No saved items.</div>
     </div>
+    <div v-else class="mx-4">No favorite movies.</div>
   </div>
 </template>

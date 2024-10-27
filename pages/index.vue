@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { useRuntimeConfig } from "#app";
-import type { ListType } from "~/components/ListDumb.vue";
 import type { PageState } from "primevue/paginator";
+import type { DbMovie } from "~/utils/type";
 // definePageMeta({ layout: "default" });
 
-const popularMovies = ref<ListType[]>([]);
+const popularMovies = ref<DbMovie[]>([]);
 const popularTotal = ref(0);
 const popularCurrentPage = ref(1);
 
 const config = useRuntimeConfig();
 
 const fetchPopularMovies = async (page: number) => {
-  const popularData = await $fetch<SearchResponse>(
+  const popularData = await $fetch<RawList>(
     `https://api.themoviedb.org/3/movie/popular`,
     {
       params: {
@@ -22,8 +22,12 @@ const fetchPopularMovies = async (page: number) => {
     }
   );
 
-  popularMovies.value = popularData.results;
+  popularMovies.value = popularData.results.map((item) =>
+    convertToDbType(item)
+  );
   popularTotal.value = popularData.total_results;
+  isShowSearchResult.value = false;
+  searchQuery.value = "";
 };
 
 const isShowSearchResult = ref(false);
@@ -31,22 +35,17 @@ const isShowSearchResult = ref(false);
 const searchQuery = ref("");
 let searchQueryLabel = "";
 
-const searchResults = ref<ListType[]>([]);
+const searchResults = ref<DbMovie[]>([]);
 const searchTotal = ref(0);
 const searchCurrentPage = ref(1);
 
-// const searchMovies = async () => {
-// catch (error) {
-//   console.error("Error searching for movies or TV shows:", error);
-// }
-
-interface SearchResponse {
-  results: ListType[];
+interface RawList {
+  results: RawMovie[];
   total_results: number;
 }
 
 const fetchSearchResults = async (page: number) => {
-  const searchData = await $fetch<SearchResponse>(
+  const searchData = await $fetch<RawList>(
     "https://api.themoviedb.org/3/search/multi",
     {
       params: {
@@ -64,9 +63,9 @@ const fetchSearchResults = async (page: number) => {
   searchQueryLabel = searchQuery.value; // for search query label
   // searchQuery.value = ""; if clear, pagination will not work
 
-  searchResults.value = searchData.results.filter(
-    (item: { media_type: string }) => item.media_type !== "person"
-  );
+  searchResults.value = searchData.results
+    .filter((item: { media_type: string }) => item.media_type !== "person")
+    .map((item) => convertToDbType(item));
   searchTotal.value = searchData.total_results; // for pagination
 };
 
@@ -89,15 +88,20 @@ const handleSearchPageChange = async (event: PageState) => {
   searchCurrentPage.value = event.page + 1;
   await fetchSearchResults(searchCurrentPage.value);
 };
+
+onMounted(() => {
+  fetchPopularMovies(popularCurrentPage.value);
+});
 </script>
 
 <template>
-  <div>
-    <div class="flex gap-4 m-2">
+  <div class="py-2 mx-4">
+    <div class="flex gap-4 my-2">
       <Button
-        label="Show Popular Movies"
-        icon="i-material-symbols-check-circle-rounded"
+        label="Trending"
+        icon="i-material-symbols-kid-star-sharp"
         class=""
+        :pt="{ label: { class: 'max-md:text-xs' } }"
         @click="fetchPopularMovies(1)"
       />
 
@@ -105,30 +109,35 @@ const handleSearchPageChange = async (event: PageState) => {
         v-model="searchQuery"
         type="text"
         variant="filled"
-        class=""
+        placeholder="Search for a movie"
+        size="small"
         @keydown="handleEnter"
       />
     </div>
 
     <div v-if="popularMovies.length > 0 && !isShowSearchResult">
-      <div class="text-2xl text-red my-2 text-center">~ Popular Movies ~</div>
+      <div class="text-2xl text-gray my-2 text-center max-md:text-sm">
+        ~ Trending Movies ~
+      </div>
       <ListDumb :list="popularMovies" />
       <Paginator
         :rows="20"
         :total-records="popularTotal"
+        :pt="{ root: { class: '!bg-transparent' } }"
         @page="handlePopularPageChange"
       />
     </div>
 
     <div v-if="searchResults.length > 0 && isShowSearchResult">
-      <div class="text-3xl text-red b-1 b-amber">
-        Search Results for '{{ searchQueryLabel }}'
+      <div class="text-2xl text-gray max-md:text-sm">
+        Search Results for "{{ searchQueryLabel }}"
       </div>
       <ListDumb :list="searchResults" />
-      <div>total result is {{ searchTotal }}, {{ searchCurrentPage }}</div>
+      <!-- <div>total result is {{ searchTotal }}, {{ searchCurrentPage }}</div> -->
       <Paginator
         :rows="20"
         :total-records="searchTotal"
+        :pt="{ root: { class: '!bg-transparent' } }"
         @page="handleSearchPageChange"
       />
     </div>

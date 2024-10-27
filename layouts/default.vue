@@ -22,7 +22,7 @@ const menuItems = ref([
     route: "/others",
   },
   {
-    label: "Nuxt",
+    label: "",
     icon: "i-logos-nuxt-icon",
     route: "/sample",
   },
@@ -33,9 +33,9 @@ const route = useRoute();
 
 <template>
   <div
-    class="bg-[url('/images/pexels-pavel-danilyuk-7234404.jpg')] bg-cover bg-fixed bg-blend-overlay bg-center bg-no-repeat h-screen bg-gray-800"
+    class="bg-[url('/images/pexels-pavel-danilyuk-7234404.jpg')] bg-cover bg-fixed bg-blend-overlay bg-center bg-#0e1111"
   >
-    <nav class="grid grid-cols-5 items-center p-1">
+    <nav class="grid grid-cols-5 items-center p-1 bg-#0e1111">
       <!-- Left Menu Items -->
       <div class="col-span-4 flex gap-2">
         <div v-for="menu in menuItems.slice(0, 4)" :key="menu.label">
@@ -48,7 +48,7 @@ const route = useRoute();
             class="no-underline rounded-1 m-1 w-fit px-2 h-8 flex justify-center items-center gap-1"
           >
             <div :class="menu.icon" />
-            <div class="text-lg">{{ menu.label }}</div>
+            <div class="text-lg max-md:hidden">{{ menu.label }}</div>
           </NuxtLink>
         </div>
       </div>

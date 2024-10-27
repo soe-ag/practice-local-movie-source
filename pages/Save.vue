@@ -1,66 +1,66 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import type { SaveType } from "~/utils/type";
+import type { DbMovie } from "~/utils/type";
 
-const watchList = ref<SaveType[]>([]);
+const watchList = ref<DbMovie[]>([]);
+
+const client = useSupabaseClient();
+const getList = async () => {
+  const { data } = await client.from("watchList").select();
+  watchList.value = data ? data : [];
+};
 
 onMounted(() => {
-  const storedList = localStorage.getItem("watchList");
-  if (storedList) {
-    watchList.value = JSON.parse(storedList);
-  }
+  getList();
 });
 
-const handleWatchListRemove = (id: number) => {
-  watchList.value = removeFromList(id, "watchList");
+const removeFromWatchList = async (id: number) => {
+  console.log(id);
+  const { error } = await client.from("watchList").delete().eq("id", id);
+  getList();
+  console.log(error);
 };
 </script>
 
 <template>
-  <div>
+  <div class="bg-#0e1111 py-2">
     <div>
       <div
         v-if="watchList.length"
-        class="grid grid-cols-5 gap-2 justify-center items-center m-4"
+        class="flex flex-wrap gap-2 justify-center items-center mx-4"
       >
         <div
           v-for="item in watchList"
           :key="item.id"
-          class="w-50 h-70 m-2 p-1 flex flex-col"
+          class="w-50 h-70 m-2 p-1 flex flex-col max-md:w-36 max-md:h-58"
         >
           <div class="flex gap-2">
             <NuxtImg
-              :src="
-                item.poster_path
-                  ? `https://image.tmdb.org/t/p/w300${item.poster_path}`
-                  : '/images/default-movie-poster.jpg'
-              "
-              class="rounded-1 b-10 b-gray-1"
-              width="150"
-              height="210"
+              :src="item.posterUrl"
+              class="rounded-1 w-35 max-md:w-30 max-md:h-45"
             />
             <div class="flex flex-col gap-2 justify-between">
               <div>
-                <Chip
-                  v-if="item.vote_average"
-                  :label="item.vote_average.toFixed(1)"
-                  class="h-6 text-xs bg-blue!"
-                />
+                <div>
+                  <div
+                    v-if="item.rating"
+                    class="px-2 text-xs rounded-full bg-blue!"
+                  >
+                    {{ item.rating }}
+                  </div>
+                </div>
               </div>
               <div class="flex flex-col gap-2">
                 <div
-                  class="i-material-symbols-remove-rounded text-gray text-2xl cursor-pointer hover:text-green"
-                  @click="() => handleWatchListRemove(item.id)"
+                  class="i-material-symbols-delete-forever text-gray text-2xl max-md:text-lg cursor-pointer hover:text-red"
+                  @click="() => removeFromWatchList(item.id)"
                 />
               </div>
             </div>
           </div>
-          <div class="text-sm my-1">
-            {{ item.title ?? item.name }}
-          </div>
+          <div class="text-sm my-1">{{ item.title }} ({{ item.release }})</div>
         </div>
       </div>
-      <div v-else>No saved items.</div>
+      <div v-else class="mx-4">No movies in watch list.</div>
     </div>
   </div>
 </template>
