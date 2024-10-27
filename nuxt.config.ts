@@ -25,6 +25,9 @@ export default defineNuxtConfig({
   //   },
   // },
   // css: ["primevue/resources/themes/aura-dark-purple/theme.css"],
+  image: {
+    domains: ["image.tmdb.org"],
+  },
   unocss: {
     nuxtLayers: true,
   },
