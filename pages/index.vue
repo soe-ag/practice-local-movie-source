@@ -26,6 +26,8 @@ const fetchPopularMovies = async (page: number) => {
     convertToDbType(item)
   );
   popularTotal.value = popularData.total_results;
+  isShowSearchResult.value = false;
+  searchQuery.value = "";
 };
 
 const isShowSearchResult = ref(false);
@@ -98,12 +100,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <div class="flex gap-4 m-2">
+  <div class="py-2 mx-4">
+    <div class="flex gap-4 my-2">
       <Button
-        label="Show Popular Movies"
-        icon="i-material-symbols-check-circle-rounded"
+        label="Trending"
+        icon="i-material-symbols-kid-star-sharp"
         class=""
+        :pt="{ label: { class: 'max-md:text-xs' } }"
         @click="fetchPopularMovies(1)"
       />
 
@@ -111,30 +114,35 @@ onMounted(() => {
         v-model="searchQuery"
         type="text"
         variant="filled"
-        class=""
+        placeholder="Search for a movie"
+        size="small"
         @keydown="handleEnter"
       />
     </div>
 
     <div v-if="popularMovies.length > 0 && !isShowSearchResult">
-      <div class="text-2xl text-red my-2 text-center">~ Popular Movies ~</div>
+      <div class="text-2xl text-gray my-2 text-center max-md:text-sm">
+        ~ Trending Movies ~
+      </div>
       <ListDumb :list="popularMovies" />
       <Paginator
         :rows="20"
         :total-records="popularTotal"
+        :pt="{ root: { class: '!bg-transparent' } }"
         @page="handlePopularPageChange"
       />
     </div>
 
     <div v-if="searchResults.length > 0 && isShowSearchResult">
-      <div class="text-3xl text-red b-1 b-amber">
-        Search Results for '{{ searchQueryLabel }}'
+      <div class="text-2xl text-gray max-md:text-sm">
+        Search Results for "{{ searchQueryLabel }}"
       </div>
       <ListDumb :list="searchResults" />
-      <div>total result is {{ searchTotal }}, {{ searchCurrentPage }}</div>
+      <!-- <div>total result is {{ searchTotal }}, {{ searchCurrentPage }}</div> -->
       <Paginator
         :rows="20"
         :total-records="searchTotal"
+        :pt="{ root: { class: '!bg-transparent' } }"
         @page="handleSearchPageChange"
       />
     </div>

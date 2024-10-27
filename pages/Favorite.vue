@@ -47,44 +47,41 @@ const removeFromFavoriteList = async (id: number) => {
 </script>
 
 <template>
-  <div>
-    <div>
+  <div class="py-2">
+    <div
+      v-if="saveList.length"
+      class="flex flex-wrap gap-2 justify-center items-center mx-4"
+    >
       <div
-        v-if="saveList.length"
-        class="flex flex-wrap gap-2 justify-center items-center m-4"
+        v-for="item in saveList"
+        :key="item.id"
+        class="w-50 h-70 m-2 p-1 flex flex-col max-md:w-36 max-md:h-58"
       >
-        <div
-          v-for="item in saveList"
-          :key="item.id"
-          class="w-50 h-70 m-2 p-1 flex flex-col"
-        >
-          <div class="flex gap-2">
-            <NuxtImg
-              :src="item.posterUrl"
-              class="rounded-1 b-10 b-gray-1"
-              width="150"
-              height="210"
-            />
-            <div class="flex flex-col gap-2 justify-between">
-              <div>
-                <Chip
-                  v-if="item.rating"
-                  :label="item.rating.toString()"
-                  class="h-6 text-xs bg-blue!"
-                />
-              </div>
+        <div class="flex gap-2">
+          <NuxtImg
+            :src="item.posterUrl"
+            class="rounded-1 w-35 max-md:w-30 max-md:h-45"
+          />
+          <div class="flex flex-col gap-2 justify-between">
+            <div>
               <div
-                class="i-material-symbols-heart-minus text-gray text-xl cursor-pointer hover:text-red"
-                @click="removeFromFavoriteList(item.id)"
-              />
+                v-if="item.rating"
+                class="px-2 text-xs rounded-full bg-blue!"
+              >
+                {{ item.rating }}
+              </div>
             </div>
-          </div>
-          <div class="text-sm my-1">
-            {{ item.title }}
+            <div
+              class="i-material-symbols-heart-minus text-gray text-xl max-md:text-lg cursor-pointer hover:text-red"
+              @click="removeFromFavoriteList(item.id)"
+            />
           </div>
         </div>
+        <div class="text-sm my-1">
+          {{ item.title }}
+        </div>
       </div>
-      <div v-else>No saved items.</div>
     </div>
+    <div v-else class="mx-4">No favorite movies.</div>
   </div>
 </template>
