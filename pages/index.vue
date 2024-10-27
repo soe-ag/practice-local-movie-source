@@ -91,6 +91,10 @@ const handleSearchPageChange = async (event: PageState) => {
   searchCurrentPage.value = event.page + 1;
   await fetchSearchResults(searchCurrentPage.value);
 };
+
+onMounted(() => {
+  fetchPopularMovies(popularCurrentPage.value);
+});
 </script>
 
 <template>

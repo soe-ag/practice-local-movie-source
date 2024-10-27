@@ -7,8 +7,8 @@ const props = defineProps<{
 
 const client = useSupabaseClient();
 
-const addMovie = async (item: DbMovie) => {
-  const { error } = await client.from("watchList").insert([item]);
+const addMovie = async (item: DbMovie, dbName: string) => {
+  const { error } = await client.from(dbName).insert([item]);
   console.log(error);
 };
 </script>
@@ -48,11 +48,12 @@ const addMovie = async (item: DbMovie) => {
           <div class="w-8">
             <div
               class="i-material-symbols-favorite text-gray text-xl cursor-pointer hover:text-red mb-1 mx-auto"
+              @click="() => addMovie(item, 'favoriteList')"
             />
 
             <div
               class="i-material-symbols-add-rounded text-gray text-2xl cursor-pointer hover:text-green mx-auto"
-              @click="() => addMovie(item)"
+              @click="() => addMovie(item, 'watchList')"
             />
           </div>
         </div>

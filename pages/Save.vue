@@ -15,12 +15,25 @@ const watchList = ref<DbMovie[]>([]);
 // };
 
 const client = useSupabaseClient();
-const { data } = await client.from("watchList").select();
-watchList.value = data ? data : [];
+const getList = async () => {
+  const { data } = await client.from("watchList").select();
+  watchList.value = data ? data : [];
+};
+
+onMounted(() => {
+  getList();
+});
+
+const removeFromWatchList = async (id: number) => {
+  console.log(id);
+  const { error } = await client.from("watchList").delete().eq("id", id);
+  getList();
+  console.log(error);
+};
 </script>
 
 <template>
-  <div>
+  <div class="bg-none bg-#0e1111">
     <div>
       <div
         v-if="watchList.length"
@@ -48,8 +61,8 @@ watchList.value = data ? data : [];
               </div>
               <div class="flex flex-col gap-2">
                 <div
-                  class="i-material-symbols-remove-rounded text-gray text-2xl cursor-pointer hover:text-green"
-                  @click="() => handleWatchListRemove(item.id)"
+                  class="i-material-symbols-delete-forever text-gray text-2xl cursor-pointer hover:text-red"
+                  @click="() => removeFromWatchList(item.id)"
                 />
               </div>
             </div>

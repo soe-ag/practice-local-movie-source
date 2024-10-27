@@ -1,5 +1,5 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div>this is others page</div>
+  <div class="m-4 h-100vh">Still in progress...</div>
 </template>

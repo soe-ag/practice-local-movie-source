@@ -33,7 +33,7 @@ const route = useRoute();
 
 <template>
   <div
-    class="bg-[url('/images/pexels-pavel-danilyuk-7234404.jpg')] bg-cover bg-fixed bg-blend-overlay bg-center bg-no-repeat h-screen bg-gray-800"
+    class="bg-[url('/images/pexels-pavel-danilyuk-7234404.jpg')] bg-cover bg-fixed bg-blend-overlay bg-center bg-#0e1111"
   >
     <nav class="grid grid-cols-5 items-center p-1">
       <!-- Left Menu Items -->
