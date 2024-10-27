@@ -3,17 +3,6 @@ import type { DbMovie } from "~/utils/type";
 
 const watchList = ref<DbMovie[]>([]);
 
-// onMounted(() => {
-//   const storedList = localStorage.getItem("watchList");
-//   if (storedList) {
-//     watchList.value = JSON.parse(storedList);
-//   }
-// });
-
-// const handleWatchListRemove = (id: number) => {
-//   watchList.value = removeFromList(id, "watchList");
-// };
-
 const client = useSupabaseClient();
 const getList = async () => {
   const { data } = await client.from("watchList").select();

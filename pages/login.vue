@@ -23,8 +23,6 @@ const handleSignIn = async () => {
 
 <!-- eslint-disable vue/html-self-closing -->
 <template>
-  <!-- <div class="my-2">email value is {{ email }}</div> -->
-
   <div class="p-10 text-center lg:w-100 backdrop-blur-md rounded-2xl bg-gray-8">
     <div class="text-3xl font-medium mb-8">Welcome back!</div>
     <InputText

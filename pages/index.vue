@@ -39,11 +39,6 @@ const searchResults = ref<DbMovie[]>([]);
 const searchTotal = ref(0);
 const searchCurrentPage = ref(1);
 
-// const searchMovies = async () => {
-// catch (error) {
-//   console.error("Error searching for movies or TV shows:", error);
-// }
-
 interface RawList {
   results: RawMovie[];
   total_results: number;

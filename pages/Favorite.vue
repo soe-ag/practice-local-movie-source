@@ -2,32 +2,9 @@
 import { ref, onMounted } from "vue";
 import type { DbMovie } from "~/utils/type";
 
-const saveList = ref<DbMovie[]>([]);
-
-// onMounted(() => {
-//   const storedList = localStorage.getItem("favoriteList");
-//   if (storedList) {
-//     saveList.value = JSON.parse(storedList);
-//   }
-// });
-
-// const handleWatchListRemove = (id: number) => {
-//   console.log(id);
-//   const storedWatchList = localStorage.getItem("watchList");
-
-//   if (storedWatchList) {
-//     const watchList = JSON.parse(storedWatchList);
-//     const updatedWatchList = watchList.filter(
-//       (item: { id: number }) => item.id !== id
-//     );
-
-//     localStorage.setItem("watchList", JSON.stringify(updatedWatchList));
-//     console.log(`Item with id ${id} has been removed from the watch list.`);
-//   } else {
-//     console.log("No watch list found in localStorage.");
-//   }
-// };
 const client = useSupabaseClient();
+
+const saveList = ref<DbMovie[]>([]);
 
 const getList = async () => {
   const { data } = await client.from("favoriteList").select();
