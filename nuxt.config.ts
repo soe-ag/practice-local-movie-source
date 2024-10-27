@@ -19,6 +19,10 @@ export default defineNuxtConfig({
     "@nuxt/eslint",
     "@nuxtjs/supabase",
   ],
+  image: {
+    domains: ["image.tmdb.org"],
+  },
+
   // primevue: {
   //   components: {
   //     include: "*",
