@@ -54,7 +54,7 @@ const removeFromWatchList = async (id: number) => {
               </div>
               <div class="flex flex-col gap-2">
                 <div
-                  class="i-material-symbols-delete-forever text-gray text-2xl max-md:text-lg cursor-pointer hover:text-red"
+                  class="i-material-symbols-delete-forever text-gray text-2xl max-md:text-lg cursor-pointer hover:text-red hover:animate-pulse"
                   @click="() => removeFromWatchList(item.id)"
                 />
               </div>

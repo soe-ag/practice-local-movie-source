@@ -50,12 +50,12 @@ const addMovie = async (item: DbMovie, dbName: string) => {
           </div>
           <div class="w-8 max-md:w-4">
             <div
-              class="i-material-symbols-favorite text-gray text-xl cursor-pointer hover:text-red mb-1 mx-auto"
+              class="i-material-symbols-favorite text-gray text-xl cursor-pointer hover:text-red mb-1 mx-auto hover:animate-bounce"
               @click="() => addMovie(item, 'favoriteList')"
             />
 
             <div
-              class="i-material-symbols-add-rounded text-gray text-xl cursor-pointer hover:text-green mx-auto"
+              class="i-material-symbols-add-rounded text-gray text-xl cursor-pointer hover:text-green mx-auto hover:animate-pulse"
               @click="() => addMovie(item, 'watchList')"
             />
           </div>

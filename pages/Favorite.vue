@@ -50,7 +50,7 @@ const removeFromFavoriteList = async (id: number) => {
               </div>
             </div>
             <div
-              class="i-material-symbols-heart-minus text-gray text-xl max-md:text-lg cursor-pointer hover:text-red"
+              class="i-material-symbols-heart-minus text-gray text-xl max-md:text-lg cursor-pointer hover:text-red hover:animate-pulse"
               @click="removeFromFavoriteList(item.id)"
             />
           </div>
