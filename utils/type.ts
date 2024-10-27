@@ -10,6 +10,11 @@ export type RawMovie = {
   vote_average: number;
 };
 
+export type RawMovieWithTotal = {
+  total_results: number;
+  results: RawMovie[];
+};
+
 export type DbMovie = {
   id: number;
   title: string;
@@ -18,6 +23,11 @@ export type DbMovie = {
   release: number | null;
   type: string;
   addedAt: Date;
+};
+
+export type DbMovieWithTotal = {
+  totalResults: number;
+  movies: DbMovie[];
 };
 
 export type LocalList = "watchList" | "favoriteList";

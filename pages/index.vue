@@ -1,51 +1,46 @@
 <script setup lang="ts">
 import { useRuntimeConfig } from "#app";
 import type { PageState } from "primevue/paginator";
-import type { DbMovie } from "~/utils/type";
+import type { DbMovie, RawMovieWithTotal } from "~/utils/type";
 // definePageMeta({ layout: "default" });
-
-const popularMovies = ref<DbMovie[]>([]);
-const popularTotal = ref(0);
-const popularCurrentPage = ref(1);
 
 const config = useRuntimeConfig();
 
-const fetchPopularMovies = async (page: number) => {
-  const popularData = await $fetch<RawList>(
-    `https://api.themoviedb.org/3/movie/popular`,
-    {
-      params: {
-        api_key: config.public.tmdbApiKey,
-        language: "en-US",
-        page,
-      },
-    }
-  );
-
-  popularMovies.value = popularData.results.map((item) =>
-    convertToDbType(item)
-  );
-  popularTotal.value = popularData.total_results;
-  isShowSearchResult.value = false;
-  searchQuery.value = "";
-};
-
-const isShowSearchResult = ref(false);
+let isShowSearchResult = false;
 
 const searchQuery = ref("");
 let searchQueryLabel = "";
+
+const popularCurrentPage = ref(1);
+
+const { data, refresh } = await useAsyncData(
+  "fetchPopularMovies",
+  () =>
+    $fetch<RawMovieWithTotal>(`https://api.themoviedb.org/3/movie/popular`, {
+      params: {
+        api_key: config.public.tmdbApiKey,
+        language: "en-US",
+        page: popularCurrentPage.value,
+      },
+    }),
+  { watch: [() => popularCurrentPage.value, () => isShowSearchResult] } // re-fetch
+);
+
+const popularMovies = computed(() => {
+  if (data.value) {
+    isShowSearchResult = false;
+    return convertToDbType(data.value);
+  } else return { movies: [], totalResults: 0 };
+});
+
+// search function area
 
 const searchResults = ref<DbMovie[]>([]);
 const searchTotal = ref(0);
 const searchCurrentPage = ref(1);
 
-interface RawList {
-  results: RawMovie[];
-  total_results: number;
-}
-
 const fetchSearchResults = async (page: number) => {
-  const searchData = await $fetch<RawList>(
+  const searchData = await $fetch<RawMovieWithTotal>(
     "https://api.themoviedb.org/3/search/multi",
     {
       params: {
@@ -58,14 +53,13 @@ const fetchSearchResults = async (page: number) => {
     }
   );
 
-  isShowSearchResult.value = true;
-
+  isShowSearchResult = true;
   searchQueryLabel = searchQuery.value; // for search query label
   // searchQuery.value = ""; if clear, pagination will not work
 
-  searchResults.value = searchData.results
-    .filter((item: { media_type: string }) => item.media_type !== "person")
-    .map((item) => convertToDbType(item));
+  searchResults.value = convertToDbType(searchData).movies.filter(
+    (item) => item.type !== "person"
+  );
   searchTotal.value = searchData.total_results; // for pagination
 };
 
@@ -80,7 +74,7 @@ const handleEnter = async (event: KeyboardEvent) => {
 const handlePopularPageChange = async (event: PageState) => {
   console.log(event);
   popularCurrentPage.value = event.page + 1;
-  await fetchPopularMovies(popularCurrentPage.value);
+  // await fetchPopularMovies(popularCurrentPage.value);
 };
 
 const handleSearchPageChange = async (event: PageState) => {
@@ -88,10 +82,6 @@ const handleSearchPageChange = async (event: PageState) => {
   searchCurrentPage.value = event.page + 1;
   await fetchSearchResults(searchCurrentPage.value);
 };
-
-onMounted(() => {
-  fetchPopularMovies(popularCurrentPage.value);
-});
 </script>
 
 <template>
@@ -102,7 +92,12 @@ onMounted(() => {
         icon="i-material-symbols-kid-star-sharp"
         class=""
         :pt="{ label: { class: 'max-md:text-xs' } }"
-        @click="fetchPopularMovies(1)"
+        @click="
+          () => {
+            searchQuery = '';
+            refresh();
+          }
+        "
       />
 
       <InputText
@@ -115,14 +110,14 @@ onMounted(() => {
       />
     </div>
 
-    <div v-if="popularMovies.length > 0 && !isShowSearchResult">
+    <div v-if="popularMovies.movies.length > 0 && !isShowSearchResult">
       <div class="text-2xl text-gray my-2 text-center max-md:text-sm">
         ~ Trending Movies ~
       </div>
-      <ListDumb :list="popularMovies" />
+      <ListDumb :list="popularMovies.movies" />
       <Paginator
         :rows="20"
-        :total-records="popularTotal"
+        :total-records="popularMovies.totalResults"
         :pt="{ root: { class: '!bg-transparent' } }"
         @page="handlePopularPageChange"
       />
