@@ -86,6 +86,7 @@ const handleSearchPageChange = async (event: PageState) => {
 
 <template>
   <div class="py-2 mx-4">
+    <Toast class="font-sans" />
     <div class="flex gap-4 my-2">
       <Button
         label="Trending"

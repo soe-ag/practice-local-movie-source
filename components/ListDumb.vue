@@ -1,14 +1,33 @@
 <script setup lang="ts">
 import type { DbMovie } from "~/utils/type";
+import { useToast } from "primevue/usetoast";
 
 const props = defineProps<{
   list: DbMovie[];
 }>();
 
 const client = useSupabaseClient();
-
+const toast = useToast();
+const showToast = (
+  type: "error" | "success",
+  message: string,
+  dbName?: string
+) => {
+  toast.add({
+    severity: type,
+    summary: type === "error" ? "Error" : "Success",
+    detail:
+      type === "error" ? message : `Movie (${message}) is added to ${dbName}.`,
+    life: 3000,
+  });
+};
 const addMovie = async (item: DbMovie, dbName: string) => {
   const { error } = await client.from(dbName).insert([item]);
+  showToast(
+    error ? "error" : "success",
+    error ? error.message : item.title,
+    error ? "" : dbName
+  );
   console.log(error);
 };
 </script>
