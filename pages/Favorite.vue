@@ -3,6 +3,19 @@ import type { DbMovie } from "~/utils/type";
 
 const client = useSupabaseClient();
 
+const toast = useToast();
+const showToast = (type: "error" | "success", message: string) => {
+  toast.add({
+    severity: type,
+    summary: type === "error" ? "Error" : "Success",
+    detail:
+      type === "error"
+        ? message
+        : `Movie (${message}) is removed from Favorite list.`,
+    life: 3000,
+  });
+};
+
 const { data, refresh } = await useAsyncData<DbMovie[]>(
   "favoriteList",
   async () => {
@@ -15,9 +28,10 @@ const saveList = computed<DbMovie[]>(() => {
   return data.value ?? [];
 });
 
-const removeFromFavoriteList = async (id: number) => {
+const removeFromFavoriteList = async (id: number, name: string) => {
   console.log(id);
   const { error } = await client.from("favoriteList").delete().eq("id", id);
+  showToast(error ? "error" : "success", error ? error.message : name);
   console.log(error);
 
   refresh();
@@ -26,6 +40,7 @@ const removeFromFavoriteList = async (id: number) => {
 
 <template>
   <div class="py-2">
+    <Toast class="font-sans" />
     <div
       v-if="saveList.length"
       class="flex flex-wrap gap-2 justify-center items-center mx-4"
@@ -51,12 +66,12 @@ const removeFromFavoriteList = async (id: number) => {
             </div>
             <div
               class="i-material-symbols-heart-minus text-gray text-xl max-md:text-lg cursor-pointer hover:text-red hover:animate-pulse"
-              @click="removeFromFavoriteList(item.id)"
+              @click="removeFromFavoriteList(item.id, item.title)"
             />
           </div>
         </div>
         <div class="text-sm my-1">
-          {{ item.title }}
+          {{ item.title }} ({{ item.release ?? "-" }})
         </div>
       </div>
     </div>

@@ -3,6 +3,19 @@ import type { DbMovie } from "~/utils/type";
 
 const client = useSupabaseClient();
 
+const toast = useToast();
+const showToast = (type: "error" | "success", message: string) => {
+  toast.add({
+    severity: type,
+    summary: type === "error" ? "Error" : "Success",
+    detail:
+      type === "error"
+        ? message
+        : `Movie (${message}) is removed from Watchlist.`,
+    life: 3000,
+  });
+};
+
 const { data, refresh } = await useAsyncData<DbMovie[]>(
   "fetchWatchList",
   async () => {
@@ -15,9 +28,10 @@ const watchList = computed<DbMovie[]>(() => {
   return data.value ?? [];
 });
 
-const removeFromWatchList = async (id: number) => {
+const removeFromWatchList = async (id: number, name: string) => {
   console.log(id);
   const { error } = await client.from("watchList").delete().eq("id", id);
+  showToast(error ? "error" : "success", error ? error.message : name);
   console.log(error);
 
   refresh();
@@ -26,6 +40,7 @@ const removeFromWatchList = async (id: number) => {
 
 <template>
   <div class="bg-#0e1111 py-2">
+    <Toast class="font-sans" />
     <div>
       <div
         v-if="watchList.length"
@@ -55,12 +70,14 @@ const removeFromWatchList = async (id: number) => {
               <div class="flex flex-col gap-2">
                 <div
                   class="i-material-symbols-delete-forever text-gray text-2xl max-md:text-lg cursor-pointer hover:text-red hover:animate-pulse"
-                  @click="() => removeFromWatchList(item.id)"
+                  @click="() => removeFromWatchList(item.id, item.title)"
                 />
               </div>
             </div>
           </div>
-          <div class="text-sm my-1">{{ item.title }} ({{ item.release }})</div>
+          <div class="text-sm my-1">
+            {{ item.title }} ({{ item.release ?? "-" }})
+          </div>
         </div>
       </div>
       <div v-else class="mx-4">No movies in watch list.</div>
