@@ -8,6 +8,7 @@ export type RawMovie = {
   release_date?: string;
   media_type: string;
   vote_average: number;
+  overview: string;
 };
 
 export type RawMovieWithTotal = {
@@ -23,6 +24,7 @@ export type DbMovie = {
   release: number | null;
   type: string;
   addedAt: Date;
+  overview?: string;
 };
 
 export type DbMovieWithTotal = {

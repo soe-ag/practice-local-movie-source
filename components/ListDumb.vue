@@ -39,13 +39,18 @@ const addMovie = async (item: DbMovie, dbName: string) => {
     <div
       v-for="item in props.list"
       :key="item.id"
-      class="w-50 h-70 m-2 p-1 flex flex-col max-md:w-36 max-md:h-58"
+      class="w-48 h-70 m-2 p-1 flex flex-col max-md:w-36 max-md:h-58"
     >
-      <div class="flex gap-2 relative">
+      <div class="flex gap-2 relative group">
         <NuxtImg
           :src="item.posterUrl"
           class="rounded-1 w-35 max-md:w-30 max-md:h-45"
         />
+        <div
+          class="px-4 py-8 text-xs line-clamp-3 text-ellipsis absolute inset-0 flex items-center justify-center bg-black/80 text-white rounded-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        >
+          {{ item.overview }}
+        </div>
         <div
           class="absolute my-1 text-xs flex flex-col justify-end w-7 right-8 items-end gap-1 max-md:right-0"
         >

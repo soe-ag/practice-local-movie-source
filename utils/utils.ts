@@ -16,6 +16,11 @@ export const convertToDbType = (item: RawMovieWithTotal): DbMovieWithTotal => {
           : null,
         type: item.media_type ?? "movie",
         addedAt: new Date(),
+        overview: item.overview
+          ? item.overview.length > 220
+            ? `${item.overview.slice(0, 220)} ...`
+            : item.overview
+          : "",
       };
     }),
   };
