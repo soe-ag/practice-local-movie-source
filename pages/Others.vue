@@ -6,10 +6,10 @@ import type { DbMovie, RawMovieWithTotal } from "~/utils/type";
 
 const config = useRuntimeConfig();
 
-let isShowTopRatedMovies = true;
-let isShowTopRatedSeries = false;
+const isShowTopRatedMovies = ref(true);
+const isShowTopRatedSeries = ref(false);
 
-const popularCurrentPage = ref(1);
+const currentPage = ref(1);
 
 const { data, refresh } = await useAsyncData(
   "fetchTopRatedMovies",
@@ -18,15 +18,15 @@ const { data, refresh } = await useAsyncData(
       params: {
         api_key: config.public.tmdbApiKey,
         language: "en-US",
-        page: popularCurrentPage.value,
+        page: currentPage.value,
       },
-    })
-  // { watch: [() => popularCurrentPage.value, () => isShowSearchResult] } // re-fetch
+    }),
+  { watch: [() => currentPage.value] } // re-fetch
 );
 
 const topRatedMovies = computed(() => {
   if (data.value) {
-    isShowTopRatedSeries = false;
+    // isShowTopRatedSeries.value = false;
 
     return convertToDbType(data.value);
   } else return { movies: [], totalResults: 0 };
@@ -36,7 +36,7 @@ const topRatedMovies = computed(() => {
 
 const topRatedSeries = ref<DbMovie[]>([]);
 const topRatedSeriesTotal = ref(0);
-const searchCurrentPage = ref(1);
+// const searchCurrentPage = ref(1);
 
 const fetchTopRatedSeries = async (page: number) => {
   const rawTopRatedSeries = await $fetch<RawMovieWithTotal>(
@@ -50,8 +50,7 @@ const fetchTopRatedSeries = async (page: number) => {
       },
     }
   );
-  isShowTopRatedMovies = false;
-  isShowTopRatedSeries = true;
+
   topRatedSeries.value = convertToDbType(rawTopRatedSeries).movies.filter(
     (item) => item.type !== "person"
   );
@@ -66,8 +65,8 @@ const handleTopRatedSeries = async () => {
 
 const handlePopularPageChange = async (event: PageState) => {
   console.log(event);
-  popularCurrentPage.value = event.page + 1;
-  // await fetchPopularMovies(popularCurrentPage.value);
+  currentPage.value = event.page + 1;
+  if (isShowTopRatedSeries.value) await fetchTopRatedSeries(currentPage.value);
 };
 
 // const handleSearchPageChange = async (event: PageState) => {
@@ -88,7 +87,9 @@ const handlePopularPageChange = async (event: PageState) => {
         :pt="{ label: { class: 'max-md:text-xs' } }"
         @click="
           () => {
-            refresh();
+            currentPage = 1;
+            isShowTopRatedMovies = true;
+            isShowTopRatedSeries = false;
           }
         "
       />
@@ -100,6 +101,9 @@ const handlePopularPageChange = async (event: PageState) => {
         :pt="{ label: { class: 'max-md:text-xs' } }"
         @click="
           () => {
+            currentPage = 1;
+            isShowTopRatedMovies = false;
+            isShowTopRatedSeries = true;
             handleTopRatedSeries();
           }
         "
