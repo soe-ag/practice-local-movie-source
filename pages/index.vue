@@ -115,7 +115,7 @@ const handleSearchPageChange = async (event: PageState) => {
       <div class="text-2xl text-gray my-2 text-center max-md:text-sm">
         ~ Trending Movies ~
       </div>
-      <ListDumb :list="popularMovies.movies" />
+      <ItemSmart :list="popularMovies.movies" />
       <Paginator
         :rows="20"
         :total-records="popularMovies.totalResults"
@@ -128,7 +128,7 @@ const handleSearchPageChange = async (event: PageState) => {
       <div class="text-2xl text-gray max-md:text-sm">
         Search Results for "{{ searchQueryLabel }}"
       </div>
-      <ListDumb :list="searchResults" />
+      <ItemSmart :list="searchResults" />
       <!-- <div>total result is {{ searchTotal }}, {{ searchCurrentPage }}</div> -->
       <Paginator
         :rows="20"
