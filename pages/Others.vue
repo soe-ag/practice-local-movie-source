@@ -114,7 +114,7 @@ const handlePopularPageChange = async (event: PageState) => {
       <div class="text-2xl text-gray my-2 text-center max-md:text-sm">
         ~ Top Rated Movies ~
       </div>
-      <ListDumb :list="topRatedMovies.movies" />
+      <ItemSmart :list="topRatedMovies.movies" />
       <Paginator
         :rows="20"
         :total-records="topRatedMovies.totalResults"
@@ -127,7 +127,7 @@ const handlePopularPageChange = async (event: PageState) => {
       <div class="text-2xl text-gray my-2 text-center max-md:text-sm">
         ~ Top Rated Series ~
       </div>
-      <ListDumb :list="topRatedSeries" />
+      <ItemSmart :list="topRatedSeries" />
       <Paginator
         :rows="20"
         :total-records="topRatedSeriesTotal"
@@ -140,7 +140,7 @@ const handlePopularPageChange = async (event: PageState) => {
       <div class="text-2xl text-gray max-md:text-sm">
         Search Results for "{{ searchQueryLabel }}"
       </div>
-      <ListDumb :list="topRatedSeries" />
+      <ItemSmart :list="topRatedSeries" />
       <div>total result is {{ topRatedSeriesTotal }}, {{ searchCurrentPage }}</div>
       <Paginator
         :rows="20"
