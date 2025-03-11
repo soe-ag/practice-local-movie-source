@@ -147,7 +147,11 @@ const handleSortRating = () => {
         v-if="watchList.length"
         class="flex flex-wrap gap-2 justify-center items-center mx-4"
       >
-        <ItemDumb :list="watchList" @remove-from-list="removeFromWatchList" />
+        <ItemDumb
+          :list="watchList"
+          :is-list="false"
+          @remove-from-list="removeFromWatchList"
+        />
       </div>
       <div v-else class="mx-4">No movies in watch list.</div>
     </div>

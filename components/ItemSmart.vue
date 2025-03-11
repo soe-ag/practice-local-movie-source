@@ -36,7 +36,7 @@ const addMovie = async (item: DbMovie, dbName: string) => {
   <div
     class="flex flex-wrap gap-2 justify-center items-center m-auto md:w-85vw sm:w-100vw"
   >
-    <div
+    <!-- <div
       v-for="item in props.list"
       :key="item.id"
       class="w-48 h-70 m-2 p-1 flex flex-col max-md:w-36 max-md:h-58"
@@ -66,11 +66,11 @@ const addMovie = async (item: DbMovie, dbName: string) => {
         </div>
         <div class="flex flex-col gap-2 justify-between">
           <div>
-            <!-- <Chip
+            <Chip
               v-if="item.vote_average"
               :label="item.vote_average.toFixed(1)"
               class="h-6 text-xs bg-blue!"
-            /> -->
+            />
           </div>
           <div class="w-8 max-md:w-4">
             <div
@@ -89,6 +89,7 @@ const addMovie = async (item: DbMovie, dbName: string) => {
         {{ item.title }}
         ({{ item.release }})
       </div>
-    </div>
+    </div> -->
+    <ItemDumb :list="props.list" is-list @add-movie="addMovie" />
   </div>
 </template>

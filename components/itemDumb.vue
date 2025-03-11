@@ -3,10 +3,12 @@ import type { DbMovie } from "~/utils/type";
 
 const props = defineProps<{
   list: DbMovie[];
+  isList: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: "removeFromList", id: number, title: string): void;
+  (e: "addMovie", item: DbMovie, dbName: string): void;
 }>();
 </script>
 
@@ -24,10 +26,22 @@ const emit = defineEmits<{
       <div class="flex flex-col gap-2 justify-between">
         <div>
           <div v-if="item.rating" class="px-2 text-xs rounded-full bg-blue!">
-            {{ item.rating }}
+            {{ item.rating === 0 ? "-" : item.rating }}
           </div>
         </div>
+        <div v-if="props.isList" class="w-8 max-md:w-4">
+          <div
+            class="i-material-symbols-favorite text-gray text-xl cursor-pointer hover:text-red mb-1 mx-auto hover:animate-bounce"
+            @click="emit('addMovie', item, 'favoriteList')"
+          />
+
+          <div
+            class="i-material-symbols-add-rounded text-gray text-xl cursor-pointer hover:text-green mx-auto hover:animate-pulse"
+            @click="emit('addMovie', item, 'watchList')"
+          />
+        </div>
         <div
+          v-else
           class="i-material-symbols-heart-minus text-gray text-xl max-md:text-lg cursor-pointer hover:text-red hover:animate-pulse"
           @click="emit('removeFromList', item.id, item.title)"
         />

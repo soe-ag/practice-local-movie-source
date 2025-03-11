@@ -110,7 +110,11 @@ const handleSortRating = () => {
       v-if="saveList.length"
       class="flex flex-wrap gap-2 justify-center items-center mx-4"
     >
-      <ItemDumb :list="saveList" @remove-from-list="removeFromFavoriteList" />
+      <ItemDumb
+        :list="saveList"
+        :is-list="false"
+        @remove-from-list="removeFromFavoriteList"
+      />
     </div>
     <div v-else class="mx-4">No favorite movies.</div>
   </div>
