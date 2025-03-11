@@ -11,7 +11,7 @@ const isShowTopRatedSeries = ref(false);
 
 const currentPage = ref(1);
 
-const { data, refresh } = await useAsyncData(
+const { data } = await useAsyncData(
   "fetchTopRatedMovies",
   () =>
     $fetch<RawMovieWithTotal>(`https://api.themoviedb.org/3/movie/top_rated`, {

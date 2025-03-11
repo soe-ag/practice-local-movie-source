@@ -9,7 +9,7 @@ const menuItems = ref([
   {
     label: "Watch List",
     icon: "i-material-symbols-save-rounded",
-    route: "/save",
+    route: "/watchlist",
   },
   {
     label: "Favorite",
