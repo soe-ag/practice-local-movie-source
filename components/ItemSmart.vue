@@ -34,8 +34,10 @@ const addMovie = async (item: DbMovie, dbName: string) => {
 
 <template>
   <div
-    class="flex flex-wrap gap-2 justify-center items-center m-auto md:w-85vw sm:w-100vw"
+    class="flex flex-wrap gap-2 justify-center items-center m-auto lg:w-90vw"
   >
+    <!-- class="flex flex-wrap gap-2 justify-center items-center m-auto md:w-85vw sm:w-100vw" -->
+
     <!-- <div
       v-for="item in props.list"
       :key="item.id"
