@@ -6,6 +6,11 @@ import type { DbMovie, RawMovieWithTotal } from "~/utils/type";
 
 const config = useRuntimeConfig();
 
+// Debug: Check if API key is loaded
+if (process.client) {
+  console.log("TMDB API Key:", config.public.tmdbApiKey ? "Loaded" : "Missing");
+}
+
 let isShowSearchResult = false;
 
 const searchQuery = ref("");
@@ -13,18 +18,39 @@ let searchQueryLabel = "";
 
 const popularCurrentPage = ref(1);
 
-const { data, refresh } = await useAsyncData(
+const { data, error, refresh } = await useAsyncData(
   "fetchPopularMovies",
-  () =>
-    $fetch<RawMovieWithTotal>(`https://api.themoviedb.org/3/movie/popular`, {
-      params: {
-        api_key: config.public.tmdbApiKey,
-        language: "en-US",
-        page: popularCurrentPage.value,
-      },
-    }),
-  { watch: [() => popularCurrentPage.value, () => isShowSearchResult] } // re-fetch
+  async () => {
+    if (!config.public.tmdbApiKey) {
+      console.error("TMDB API Key is missing!");
+      throw new Error("TMDB API Key is not configured");
+    }
+    try {
+      const result = await $fetch<RawMovieWithTotal>(
+        `https://api.themoviedb.org/3/movie/popular`,
+        {
+          params: {
+            api_key: config.public.tmdbApiKey,
+            language: "en-US",
+            page: popularCurrentPage.value,
+          },
+        }
+      );
+      return result;
+    } catch (err: any) {
+      console.error("Error fetching popular movies:", err);
+      throw err;
+    }
+  },
+  {
+    watch: [() => popularCurrentPage.value, () => isShowSearchResult],
+  }
 );
+
+// Log errors if any
+if (error.value) {
+  console.error("Failed to fetch popular movies:", error.value);
+}
 
 const popularMovies = computed(() => {
   if (data.value) {
@@ -111,6 +137,25 @@ const handleSearchPageChange = async (event: PageState) => {
       />
     </div>
 
+    <!-- Error message -->
+    <div
+      v-if="error"
+      class="mx-4 my-4 p-4 bg-red-500/20 border border-red-500 rounded"
+    >
+      <p class="text-red-400">
+        Error loading movies: {{ error.message || error }}
+      </p>
+      <p class="text-sm text-gray-400 mt-2">
+        Please check your TMDB_API_KEY in .env file
+      </p>
+    </div>
+
+    <!-- Loading state -->
+    <div v-if="!data && !error" class="mx-4 my-4 text-center text-gray-400">
+      Loading movies...
+    </div>
+
+    <!-- Movies list -->
     <div v-if="popularMovies.movies.length > 0 && !isShowSearchResult">
       <div class="text-2xl text-gray my-2 text-center max-md:text-sm">
         ~ Trending Movies ~
@@ -122,6 +167,14 @@ const handleSearchPageChange = async (event: PageState) => {
         :pt="{ root: { class: '!bg-transparent' } }"
         @page="handlePopularPageChange"
       />
+    </div>
+
+    <!-- Empty state -->
+    <div
+      v-if="data && popularMovies.movies.length === 0 && !isShowSearchResult"
+      class="mx-4 my-4 text-center text-gray-400"
+    >
+      No movies found. Try refreshing the page.
     </div>
 
     <div v-if="searchResults.length > 0 && isShowSearchResult">

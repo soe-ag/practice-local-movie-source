@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import type { DbMovie } from "~/utils/type";
 import { useToast } from "primevue/usetoast";
+import { api } from "~/convex/_generated/api";
 
 const props = defineProps<{
   list: DbMovie[];
 }>();
 
-const client = useSupabaseClient();
 const toast = useToast();
+const { mutate: addToWatchList } = useConvexMutation(api.watchList.add);
+const { mutate: addToFavoriteList } = useConvexMutation(api.favoriteList.add);
+
 const showToast = (
   type: "error" | "success",
   message: string,
@@ -21,14 +24,33 @@ const showToast = (
     life: 3000,
   });
 };
+
 const addMovie = async (item: DbMovie, dbName: string) => {
-  const { error } = await client.from(dbName).insert([item]);
-  showToast(
-    error ? "error" : "success",
-    error ? error.message : item.title,
-    error ? "" : dbName
-  );
-  console.log(error);
+  try {
+    // Prepare movie data (addedAt is set automatically by Convex mutations)
+    const movieData = {
+      id: item.id,
+      title: item.title,
+      posterUrl: item.posterUrl,
+      rating: item.rating,
+      release: item.release,
+      type: item.type,
+      overview: item.overview,
+    };
+
+    if (dbName === "watchList") {
+      await addToWatchList(movieData);
+    } else if (dbName === "favoriteList") {
+      await addToFavoriteList(movieData);
+    }
+
+    showToast("success", item.title, dbName);
+  } catch (error: any) {
+    const errorMessage =
+      error?.message || error?.toString() || "Failed to add movie";
+    showToast("error", errorMessage, "");
+    console.error(error);
+  }
 };
 </script>
 
