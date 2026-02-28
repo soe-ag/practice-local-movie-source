@@ -12,6 +12,7 @@ const searchQuery = ref("");
 let searchQueryLabel = "";
 
 const popularCurrentPage = ref(1);
+const activeTab = ref<"trending" | "nowPlaying">("trending");
 
 const { data, refresh } = await useAsyncData(
   "fetchPopularMovies",
@@ -32,6 +33,32 @@ const popularMovies = computed(() => {
     return convertToDbType(data.value);
   } else return { movies: [], totalResults: 0 };
 });
+
+// now playing area
+
+const nowPlayingMovies = ref<DbMovie[]>([]);
+const nowPlayingTotal = ref(0);
+const nowPlayingCurrentPage = ref(1);
+
+const fetchNowPlaying = async (page: number) => {
+  const rawData = await $fetch<RawMovieWithTotal>(
+    "https://api.themoviedb.org/3/movie/now_playing",
+    {
+      params: {
+        api_key: config.public.tmdbApiKey,
+        language: "en-US",
+        page,
+      },
+    }
+  );
+  nowPlayingMovies.value = convertToDbType(rawData).movies;
+  nowPlayingTotal.value = rawData.total_results;
+};
+
+const handleNowPlayingPageChange = async (event: PageState) => {
+  nowPlayingCurrentPage.value = event.page + 1;
+  await fetchNowPlaying(nowPlayingCurrentPage.value);
+};
 
 // search function area
 
@@ -96,7 +123,22 @@ const handleSearchPageChange = async (event: PageState) => {
         @click="
           () => {
             searchQuery = '';
+            activeTab = 'trending';
             refresh();
+          }
+        "
+      />
+
+      <Button
+        label="Now Playing"
+        icon="i-material-symbols-play-circle-outline"
+        class=""
+        :pt="{ label: { class: 'max-md:text-xs' } }"
+        @click="
+          () => {
+            searchQuery = '';
+            activeTab = 'nowPlaying';
+            fetchNowPlaying(1);
           }
         "
       />
@@ -109,9 +151,17 @@ const handleSearchPageChange = async (event: PageState) => {
         size="small"
         @keydown="handleEnter"
       />
+      <Button
+        icon="i-material-symbols-search"
+        size="small"
+        :pt="{ label: { class: 'max-md:text-xs' } }"
+        @click="() => fetchSearchResults(1)"
+      />
     </div>
 
-    <div v-if="popularMovies.movies.length > 0 && !isShowSearchResult">
+    <div
+      v-if="popularMovies.movies.length > 0 && !isShowSearchResult && activeTab === 'trending'"
+    >
       <div class="text-2xl text-gray my-2 text-center max-md:text-sm">
         ~ Trending Movies ~
       </div>
@@ -121,6 +171,21 @@ const handleSearchPageChange = async (event: PageState) => {
         :total-records="popularMovies.totalResults"
         :pt="{ root: { class: '!bg-transparent' } }"
         @page="handlePopularPageChange"
+      />
+    </div>
+
+    <div
+      v-if="nowPlayingMovies.length > 0 && !isShowSearchResult && activeTab === 'nowPlaying'"
+    >
+      <div class="text-2xl text-gray my-2 text-center max-md:text-sm">
+        ~ Now Playing ~
+      </div>
+      <ItemSmart :list="nowPlayingMovies" />
+      <Paginator
+        :rows="20"
+        :total-records="nowPlayingTotal"
+        :pt="{ root: { class: '!bg-transparent' } }"
+        @page="handleNowPlayingPageChange"
       />
     </div>
 
