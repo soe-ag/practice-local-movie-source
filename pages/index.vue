@@ -135,10 +135,12 @@ const handleSearchPageChange = async (event: PageState) => {
         class=""
         :pt="{ label: { class: 'max-md:text-xs' } }"
         @click="
-          () => {
+          async () => {
             searchQuery = '';
             activeTab = 'nowPlaying';
-            fetchNowPlaying(1);
+            isShowSearchResult = false;
+            searchResults = [];
+            await fetchNowPlaying(1);
           }
         "
       />
@@ -154,6 +156,7 @@ const handleSearchPageChange = async (event: PageState) => {
       <Button
         icon="i-material-symbols-search"
         size="small"
+        aria-label="Search for a movie"
         :pt="{ label: { class: 'max-md:text-xs' } }"
         @click="() => fetchSearchResults(1)"
       />
