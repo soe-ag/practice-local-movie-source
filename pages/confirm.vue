@@ -1,17 +1,10 @@
 <script setup lang="ts">
-// not used
-const user = useSupabaseUser();
-
-watch(
-  user,
-  () => {
-    if (user.value) {
-      // Redirect to protected page
-      return navigateTo("/");
-    }
-  },
-  { immediate: true }
-);
+// TODO: Implement Convex authentication check
+// For now, redirect to home page
+// In production, check Convex auth state or use Clerk/other auth provider
+onMounted(() => {
+  navigateTo("/");
+});
 </script>
 
 <template>
