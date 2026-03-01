@@ -2,22 +2,23 @@
 definePageMeta({
   layout: "login",
 });
-const supabase = useSupabaseClient();
 const router = useRouter();
 
 const email = ref<string>("soeag.dev@gmail.com");
 const password = ref<string>("soeagdev");
 const showError = ref(false);
 
+// TODO: Implement Convex authentication
+// For now, bypass auth and redirect to home
 const handleSignIn = async () => {
-  const { error } = await supabase.auth.signInWithPassword({
-    email: email.value,
-    password: password.value,
-  });
-  if (error) {
+  try {
+    // Temporary: Bypass auth for migration
+    // In production, implement Convex auth or use Clerk/other auth provider
+    router.push("/");
+  } catch (error) {
     console.log(error);
     showError.value = true;
-  } else router.push("/");
+  }
 };
 </script>
 

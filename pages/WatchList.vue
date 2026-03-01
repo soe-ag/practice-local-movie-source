@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { DbMovie } from "~/utils/type";
-
-const client = useSupabaseClient();
+import { api } from "~/convex/_generated/api";
 
 const toast = useToast();
 const showToast = (type: "error" | "success", message: string) => {
@@ -16,25 +15,51 @@ const showToast = (type: "error" | "success", message: string) => {
   });
 };
 
-const { data, refresh } = await useAsyncData<DbMovie[]>(
-  "fetchWatchList",
-  async () => {
-    const { data } = await client.from("watchList").select();
-    return data as DbMovie[];
-  }
-);
+// Use Convex query to fetch watchlist
+const { data: watchListData } = useConvexQuery(api.watchList.get);
 
+// Transform Convex data to DbMovie format
 const watchList = computed<DbMovie[]>(() => {
-  return data.value ?? [];
+  if (!watchListData.value) return [];
+
+  return watchListData.value.map((movie) => {
+    // Convert addedAt from number/string to Date
+    let addedAt: Date;
+    if (typeof movie.addedAt === "number") {
+      addedAt = new Date(movie.addedAt);
+    } else if (typeof movie.addedAt === "string") {
+      addedAt = new Date(movie.addedAt);
+    } else {
+      addedAt = new Date();
+    }
+
+    return {
+      id: movie.id,
+      title: movie.title,
+      posterUrl: movie.posterUrl,
+      rating: movie.rating,
+      release: movie.release,
+      type: movie.type,
+      addedAt,
+      overview: movie.overview,
+    };
+  });
 });
 
-const removeFromWatchList = async (id: number, name: string) => {
-  console.log(id);
-  const { error } = await client.from("watchList").delete().eq("id", id);
-  showToast(error ? "error" : "success", error ? error.message : name);
-  console.log(error);
+const { mutate: removeFromWatchListMutation } = useConvexMutation(
+  api.watchList.remove
+);
 
-  refresh();
+const removeFromWatchList = async (id: number, name: string) => {
+  try {
+    await removeFromWatchListMutation({ id });
+    showToast("success", name);
+  } catch (error: any) {
+    const errorMessage =
+      error?.message || error?.toString() || "Failed to remove movie";
+    showToast("error", errorMessage);
+    console.error(error);
+  }
 };
 
 type Sort = "ascending" | "descending" | null;

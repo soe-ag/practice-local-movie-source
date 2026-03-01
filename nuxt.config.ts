@@ -17,7 +17,8 @@ export default defineNuxtConfig({
     "@unocss/nuxt",
     "@primevue/nuxt-module",
     "@nuxt/eslint",
-    "@nuxtjs/supabase",
+    // "@nuxtjs/supabase", // Temporarily disabled for Convex migration
+    "convex-nuxt", // Temporarily disabled until CONVEX_URL is set
   ],
   // primevue: {
   //   components: {
@@ -27,6 +28,15 @@ export default defineNuxtConfig({
   // css: ["primevue/resources/themes/aura-dark-purple/theme.css"],
   image: {
     domains: ["image.tmdb.org"],
+  },
+
+  // Convex configuration - uncomment after setting CONVEX_URL in .env.local
+  // To get your CONVEX_URL:
+  // 1. Run: npx convex dev
+  // 2. Copy the deployment URL from the output
+  // 3. Create .env.local file with: CONVEX_URL=https://your-deployment.convex.cloud
+  convex: {
+    url: process.env.CONVEX_URL,
   },
   unocss: {
     nuxtLayers: true,
