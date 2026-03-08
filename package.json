@@ -17,7 +17,7 @@
     "@vueuse/nuxt": "^14.2.1",
     "convex": "^1.31.4",
     "convex-nuxt": "^0.1.5",
-    "nuxt": "^3.13.2",
+    "nuxt": "^3.21.1",
     "primevue": "^4.1.1",
     "vue": "latest",
     "vue-router": "latest"
@@ -26,9 +26,9 @@
     "@iconify-json/logos": "^1.2.3",
     "@iconify-json/material-symbols": "^1.2.4",
     "@primevue/nuxt-module": "^4.1.1",
-    "@unocss/nuxt": "^0.63.4",
-    "@unocss/preset-icons": "^0.63.4",
-    "@unocss/preset-web-fonts": "^0.63.4",
-    "unocss": "^0.63.4"
+    "@unocss/nuxt": "^66.6.6",
+    "@unocss/preset-icons": "^66.6.6",
+    "@unocss/preset-web-fonts": "^66.6.6",
+    "unocss": "^66.6.6"
   }
 }
