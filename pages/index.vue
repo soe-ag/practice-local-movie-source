@@ -112,9 +112,14 @@ const handleTrendingClick = () => {
   searchResults.value = [];
   searchCurrentPage.value = 1;
   searchFirst.value = 0;
-  popularCurrentPage.value = 1;
   popularFirst.value = 0;
-  refresh();
+  // If already on page 1, the watcher won't fire (value unchanged), so call
+  // refresh() explicitly. Otherwise, setting the page to 1 triggers the watcher.
+  if (popularCurrentPage.value === 1) {
+    refresh();
+  } else {
+    popularCurrentPage.value = 1;
+  }
 };
 
 const handleEnter = async (event: KeyboardEvent) => {
