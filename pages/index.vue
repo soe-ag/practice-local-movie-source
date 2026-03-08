@@ -7,12 +7,11 @@ import type { DbMovie, RawMovieWithTotal } from "~/utils/type";
 const config = useRuntimeConfig();
 
 // Debug: Check if API key is loaded
-if (process.client) {
+if (import.meta.client) {
   console.log("TMDB API Key:", config.public.tmdbApiKey ? "Loaded" : "Missing");
 }
 
-let isShowSearchResult = false;
-
+const isShowSearchResult = ref(false);
 const searchQuery = ref("");
 let searchQueryLabel = "";
 
@@ -45,7 +44,7 @@ const { data, error, pending, refresh } = await useAsyncData(
     }
   },
   {
-    watch: [() => popularCurrentPage.value, () => isShowSearchResult],
+    watch: [() => popularCurrentPage.value],
   },
 );
 
@@ -56,7 +55,6 @@ if (error.value) {
 
 const popularMovies = computed(() => {
   if (data.value) {
-    isShowSearchResult = false;
     return convertToDbType(data.value);
   } else return { movies: [], totalResults: 0 };
 });
@@ -67,8 +65,10 @@ const searchResults = ref<DbMovie[]>([]);
 const searchTotal = ref(0);
 const searchCurrentPage = ref(1);
 const searchFirst = ref(0);
+let currentSearchId = 0;
 
 const fetchSearchResults = async (page: number) => {
+  const searchId = ++currentSearchId;
   isSearchPending.value = true;
   try {
     const searchData = await $fetch<RawMovieWithTotal>(
@@ -84,7 +84,10 @@ const fetchSearchResults = async (page: number) => {
       },
     );
 
-    isShowSearchResult = true;
+    // Discard result if a newer search or a Trending reset has been triggered
+    if (searchId !== currentSearchId) return;
+
+    isShowSearchResult.value = true;
     searchQueryLabel = searchQuery.value; // for search query label
     // searchQuery.value = ""; if clear, pagination will not work
 
@@ -93,14 +96,36 @@ const fetchSearchResults = async (page: number) => {
     );
     searchTotal.value = searchData.total_results; // for pagination
   } finally {
-    isSearchPending.value = false;
+    if (searchId === currentSearchId) {
+      isSearchPending.value = false;
+    }
   }
 };
 
 // };
 
+const handleTrendingClick = () => {
+  currentSearchId++; // invalidate any in-flight search response
+  searchQuery.value = "";
+  isShowSearchResult.value = false;
+  isSearchPending.value = false;
+  searchResults.value = [];
+  searchCurrentPage.value = 1;
+  searchFirst.value = 0;
+  popularFirst.value = 0;
+  // If already on page 1, the watcher won't fire (value unchanged), so call
+  // refresh() explicitly. Otherwise, setting the page to 1 triggers the watcher.
+  if (popularCurrentPage.value === 1) {
+    refresh();
+  } else {
+    popularCurrentPage.value = 1;
+  }
+};
+
 const handleEnter = async (event: KeyboardEvent) => {
   if (event.key === "Enter") {
+    searchCurrentPage.value = 1;
+    searchFirst.value = 0;
     await fetchSearchResults(1);
   }
 };
@@ -153,12 +178,7 @@ const handleSearchPageChange = async (event: PageState) => {
             label: { class: 'max-md:text-[10px] !text-xs font-semibold' },
             icon: { class: '!text-xs mr-1' },
           }"
-          @click="
-            () => {
-              searchQuery = '';
-              refresh();
-            }
-          "
+          @click="handleTrendingClick"
         />
 
         <InputText

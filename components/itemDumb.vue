@@ -38,7 +38,7 @@ const emit = defineEmits<{
               class="i-material-symbols-star-rounded text-yellow-400 text-[10px]"
             />
             <span class="text-[11px] text-white font-bold">{{
-              item.rating === 0 ? "-" : item.rating.toFixed(1)
+              item.rating.toFixed(1)
             }}</span>
           </div>
         </div>
@@ -47,19 +47,28 @@ const emit = defineEmits<{
             class="bg-black/60 backdrop-blur-md p-1.5 rounded-tl-xl rounded-br-sm shadow-lg flex flex-col gap-1 items-center m-[-4px]"
           >
             <div v-if="props.isList" class="flex flex-col gap-1">
-              <div
+              <button
+                type="button"
                 class="i-material-symbols-favorite text-gray-300 text-lg cursor-pointer hover:text-red-500 transition-colors hover:animate-bounce"
+                :aria-label="`Add ${item.title} to favorites`"
+                :title="`Add ${item.title} to favorites`"
                 @click="emit('addMovie', item, 'favoriteList')"
               />
 
-              <div
+              <button
+                type="button"
                 class="i-material-symbols-add-rounded text-gray-300 text-lg cursor-pointer hover:text-green-500 transition-colors hover:animate-pulse"
+                :aria-label="`Add ${item.title} to watchlist`"
+                :title="`Add ${item.title} to watchlist`"
                 @click="emit('addMovie', item, 'watchList')"
               />
             </div>
-            <div
+            <button
               v-else
+              type="button"
               class="i-material-symbols-delete-forever-outline-rounded text-gray-300 text-lg cursor-pointer hover:text-red-500 transition-colors hover:animate-pulse"
+              :aria-label="`Remove ${item.title} from list`"
+              :title="`Remove ${item.title} from list`"
               @click="emit('removeFromList', item.id, item.title)"
             />
           </div>

@@ -18,7 +18,7 @@ export default defineNuxtConfig({
     "@primevue/nuxt-module",
     "@nuxt/eslint",
     "@vueuse/nuxt",
-    "convex-nuxt", // Temporarily disabled until CONVEX_URL is set
+    "convex-nuxt", // Convex module; requires CONVEX_URL to be set (see Convex configuration below)
   ],
   // primevue: {
   //   components: {
