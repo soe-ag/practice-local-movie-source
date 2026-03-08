@@ -47,7 +47,7 @@ const saveList = computed<DbMovie[]>(() => {
 });
 
 const { mutate: removeFromFavorites } = useConvexMutation(
-  api.favoriteList.remove
+  api.favoriteList.remove,
 );
 
 const removeFromFavoriteList = async (id: number, name: string) => {
@@ -69,26 +69,33 @@ const sortRating = ref<Sort>(null);
 const handleSortYear = () => {
   sortYear.value = sortYear.value === "ascending" ? "descending" : "ascending";
   sortRating.value = null;
-
-  saveList.value.sort((a, b) => {
-    if (!a.release || !b.release) return 0;
-    return sortYear.value === "ascending"
-      ? a.release - b.release
-      : b.release - a.release;
-  });
 };
+
 const handleSortRating = () => {
   sortRating.value =
     sortRating.value === "ascending" ? "descending" : "ascending";
   sortYear.value = null;
-
-  saveList.value.sort((a, b) => {
-    if (!a.rating || !b.rating) return 0;
-    return sortRating.value === "ascending"
-      ? a.rating - b.rating
-      : b.rating - a.rating;
-  });
 };
+
+const sortedList = computed(() => {
+  const list = [...saveList.value];
+  if (sortYear.value !== null) {
+    list.sort((a, b) => {
+      const yearA = a.release || 0;
+      const yearB = b.release || 0;
+      return sortYear.value === "ascending" ? yearA - yearB : yearB - yearA;
+    });
+  } else if (sortRating.value !== null) {
+    list.sort((a, b) => {
+      const ratingA = a.rating || 0;
+      const ratingB = b.rating || 0;
+      return sortRating.value === "ascending"
+        ? ratingA - ratingB
+        : ratingB - ratingA;
+    });
+  }
+  return list;
+});
 </script>
 
 <template>
@@ -132,11 +139,11 @@ const handleSortRating = () => {
       </div>
     </div>
     <div
-      v-if="saveList.length"
-      class="flex flex-wrap gap-2 justify-center items-center mx-4"
+      v-if="sortedList.length"
+      class="flex flex-wrap justify-start items-start px-2 my-4 md:px-8 max-w-[1400px] mx-auto"
     >
       <ItemDumb
-        :list="saveList"
+        :list="sortedList"
         :is-list="false"
         @remove-from-list="removeFromFavoriteList"
       />

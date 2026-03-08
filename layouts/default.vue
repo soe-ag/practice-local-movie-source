@@ -17,9 +17,9 @@ const menuItems = ref([
     route: "/favorite",
   },
   {
-    label: "Others",
+    label: "Top Rated",
     icon: "i-material-symbols-movie-filter",
-    route: "/others",
+    route: "/toprated",
   },
   {
     label: "",

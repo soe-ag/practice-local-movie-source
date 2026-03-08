@@ -14,7 +14,7 @@ const { mutate: addToFavoriteList } = useConvexMutation(api.favoriteList.add);
 const showToast = (
   type: "error" | "success",
   message: string,
-  dbName?: string
+  dbName?: string,
 ) => {
   toast.add({
     severity: type,
@@ -56,9 +56,9 @@ const addMovie = async (item: DbMovie, dbName: string) => {
 
 <template>
   <div
-    class="flex flex-wrap gap-2 justify-center items-center m-auto lg:w-90vw"
+    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 sm:gap-10 justify-items-center w-full max-w-[1100px] mx-auto my-6"
   >
-    <!-- class="flex flex-wrap gap-2 justify-center items-center m-auto md:w-85vw sm:w-100vw" -->
+    <!-- Responsive grid that guarantees max 5 items per row -->
 
     <!-- <div
       v-for="item in props.list"
