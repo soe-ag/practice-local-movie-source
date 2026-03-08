@@ -1,6 +1,6 @@
 # Practice Local Movie Source
 
-A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themoviedb.org/) and [Supabase](https://supabase.com/).
+A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themoviedb.org/) and Convex.
 
 ## Features
 
@@ -8,13 +8,13 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 - Search for movies and TV shows
 - Add movies to a personal Watch List
 - Add movies to a Favorites list
-- User authentication via Supabase
+- User authentication via Convex
 - Sortable lists (by date added, year, rating)
 
 ## Tech Stack
 
 - [Nuxt 3](https://nuxt.com/) — Vue-based full-stack framework
-- [Supabase](https://supabase.com/) — database and authentication
+- [Convex](https://www.convex.dev/) — database and authentication
 - [PrimeVue](https://primevue.org/) — UI component library
 - [UnoCSS](https://unocss.dev/) — utility-first CSS engine
 - [TMDB API](https://developer.themoviedb.org/docs) — movie data source
@@ -23,7 +23,7 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 
 - Node.js 18+
 - A [TMDB API key](https://developer.themoviedb.org/docs/getting-started)
-- A [Supabase](https://supabase.com/) project with `watchList` and `favoriteList` tables
+- A [Convex](https://www.convex.dev/) project with `watchList` and `favoriteList` tables
 
 ## Environment Variables
 
@@ -31,8 +31,7 @@ Create a `.env` file in the project root:
 
 ```env
 TMDB_API_KEY=your_tmdb_api_key
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_KEY=your_supabase_anon_key
+CONVEX_URL=your_convex_url
 ```
 
 ## Setup

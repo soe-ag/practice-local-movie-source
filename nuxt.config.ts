@@ -17,7 +17,6 @@ export default defineNuxtConfig({
     "@unocss/nuxt",
     "@primevue/nuxt-module",
     "@nuxt/eslint",
-    // "@nuxtjs/supabase", // Temporarily disabled for Convex migration
     "convex-nuxt", // Temporarily disabled until CONVEX_URL is set
   ],
   // primevue: {
