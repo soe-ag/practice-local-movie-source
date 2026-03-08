@@ -44,7 +44,7 @@ const { data, error, pending, refresh } = await useAsyncData(
     }
   },
   {
-    watch: [() => popularCurrentPage.value, isShowSearchResult],
+    watch: [() => popularCurrentPage.value],
   },
 );
 
@@ -65,8 +65,10 @@ const searchResults = ref<DbMovie[]>([]);
 const searchTotal = ref(0);
 const searchCurrentPage = ref(1);
 const searchFirst = ref(0);
+let currentSearchId = 0;
 
 const fetchSearchResults = async (page: number) => {
+  const searchId = ++currentSearchId;
   isSearchPending.value = true;
   try {
     const searchData = await $fetch<RawMovieWithTotal>(
@@ -82,6 +84,9 @@ const fetchSearchResults = async (page: number) => {
       },
     );
 
+    // Discard result if a newer search or a Trending reset has been triggered
+    if (searchId !== currentSearchId) return;
+
     isShowSearchResult.value = true;
     searchQueryLabel = searchQuery.value; // for search query label
     // searchQuery.value = ""; if clear, pagination will not work
@@ -91,15 +96,19 @@ const fetchSearchResults = async (page: number) => {
     );
     searchTotal.value = searchData.total_results; // for pagination
   } finally {
-    isSearchPending.value = false;
+    if (searchId === currentSearchId) {
+      isSearchPending.value = false;
+    }
   }
 };
 
 // };
 
 const handleTrendingClick = () => {
+  currentSearchId++; // invalidate any in-flight search response
   searchQuery.value = "";
   isShowSearchResult.value = false;
+  isSearchPending.value = false;
   searchResults.value = [];
   searchCurrentPage.value = 1;
   searchFirst.value = 0;
