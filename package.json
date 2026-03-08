@@ -13,6 +13,8 @@
     "@nuxt/eslint": "^0.6.0",
     "@nuxt/image": "^1.8.1",
     "@primevue/themes": "^4.1.1",
+    "@vueuse/core": "^14.2.1",
+    "@vueuse/nuxt": "^14.2.1",
     "convex": "^1.31.4",
     "convex-nuxt": "^0.1.5",
     "nuxt": "^3.13.2",

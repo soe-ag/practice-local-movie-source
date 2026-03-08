@@ -18,8 +18,9 @@ let searchQueryLabel = "";
 
 const popularCurrentPage = ref(1);
 const popularFirst = ref(0);
+const isSearchPending = ref(false);
 
-const { data, error, refresh } = await useAsyncData(
+const { data, error, pending, refresh } = await useAsyncData(
   "fetchPopularMovies",
   async () => {
     if (!config.public.tmdbApiKey) {
@@ -38,7 +39,7 @@ const { data, error, refresh } = await useAsyncData(
         },
       );
       return result;
-    } catch (err: any) {
+    } catch (err) {
       console.error("Error fetching popular movies:", err);
       throw err;
     }
@@ -68,27 +69,32 @@ const searchCurrentPage = ref(1);
 const searchFirst = ref(0);
 
 const fetchSearchResults = async (page: number) => {
-  const searchData = await $fetch<RawMovieWithTotal>(
-    "https://api.themoviedb.org/3/search/multi",
-    {
-      params: {
-        api_key: config.public.tmdbApiKey,
-        include_adult: false,
-        query: searchQuery.value,
-        language: "en-US",
-        page,
+  isSearchPending.value = true;
+  try {
+    const searchData = await $fetch<RawMovieWithTotal>(
+      "https://api.themoviedb.org/3/search/multi",
+      {
+        params: {
+          api_key: config.public.tmdbApiKey,
+          include_adult: false,
+          query: searchQuery.value,
+          language: "en-US",
+          page,
+        },
       },
-    },
-  );
+    );
 
-  isShowSearchResult = true;
-  searchQueryLabel = searchQuery.value; // for search query label
-  // searchQuery.value = ""; if clear, pagination will not work
+    isShowSearchResult = true;
+    searchQueryLabel = searchQuery.value; // for search query label
+    // searchQuery.value = ""; if clear, pagination will not work
 
-  searchResults.value = convertToDbType(searchData).movies.filter(
-    (item) => item.type !== "person",
-  );
-  searchTotal.value = searchData.total_results; // for pagination
+    searchResults.value = convertToDbType(searchData).movies.filter(
+      (item) => item.type !== "person",
+    );
+    searchTotal.value = searchData.total_results; // for pagination
+  } finally {
+    isSearchPending.value = false;
+  }
 };
 
 // };
@@ -140,8 +146,13 @@ const handleSearchPageChange = async (event: PageState) => {
         <Button
           label="Trending"
           icon="i-material-symbols-kid-star-sharp"
-          class=""
-          :pt="{ label: { class: 'max-md:text-xs' } }"
+          class="!bg-gradient-to-r !from-orange-500 !to-red-500 hover:!from-orange-600 hover:!to-red-600 !border-transparent !text-white shadow-md transition-all duration-200"
+          size="small"
+          :pt="{
+            root: { class: '!py-1 !px-2' },
+            label: { class: 'max-md:text-[10px] !text-xs font-semibold' },
+            icon: { class: '!text-xs mr-1' },
+          }"
           @click="
             () => {
               searchQuery = '';
@@ -174,13 +185,16 @@ const handleSearchPageChange = async (event: PageState) => {
       </p>
     </div>
 
-    <!-- Loading state -->
-    <div v-if="!data && !error" class="mx-4 my-4 text-center text-gray-400">
-      Loading movies...
+    <!-- Loading state / Skeletons for popular trending movies -->
+    <div
+      v-if="pending && !isShowSearchResult"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 sm:gap-10 justify-items-center w-full max-w-[1100px] mx-auto my-6"
+    >
+      <ItemSkeleton :count="20" />
     </div>
 
     <!-- Movies list -->
-    <div v-if="popularMovies.movies.length > 0 && !isShowSearchResult">
+    <div v-else-if="popularMovies.movies.length > 0 && !isShowSearchResult">
       <ItemSmart :list="popularMovies.movies" />
       <Paginator
         v-model:first="popularFirst"
@@ -193,15 +207,29 @@ const handleSearchPageChange = async (event: PageState) => {
 
     <!-- Empty state -->
     <div
-      v-if="data && popularMovies.movies.length === 0 && !isShowSearchResult"
+      v-else-if="
+        !pending && popularMovies.movies.length === 0 && !isShowSearchResult
+      "
       class="mx-4 my-4 text-center text-gray-400"
     >
       No movies found. Try refreshing the page.
     </div>
 
-    <div v-if="searchResults.length > 0 && isShowSearchResult">
+    <!-- Loading state / Skeletons for search results -->
+    <div
+      v-if="isSearchPending && isShowSearchResult"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 sm:gap-10 justify-items-center w-full max-w-[1100px] mx-auto my-6"
+    >
+      <ItemSkeleton :count="20" />
+    </div>
+
+    <!-- Search Results List -->
+    <div
+      v-else-if="
+        !isSearchPending && searchResults.length > 0 && isShowSearchResult
+      "
+    >
       <ItemSmart :list="searchResults" />
-      <!-- <div>total result is {{ searchTotal }}, {{ searchCurrentPage }}</div> -->
       <Paginator
         v-model:first="searchFirst"
         :rows="20"

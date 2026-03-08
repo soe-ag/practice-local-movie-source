@@ -45,9 +45,11 @@ const addMovie = async (item: DbMovie, dbName: string) => {
     }
 
     showToast("success", item.title, dbName);
-  } catch (error: any) {
+  } catch (error) {
     const errorMessage =
-      error?.message || error?.toString() || "Failed to add movie";
+      error instanceof Error
+        ? error.message
+        : String(error) || "Failed to add movie";
     showToast("error", errorMessage, "");
     console.error(error);
   }

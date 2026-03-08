@@ -11,8 +11,9 @@ const isShowTopRatedSeries = ref(false);
 
 const currentPage = ref(1);
 const popularFirst = ref(0);
+const isSeriesPending = ref(false);
 
-const { data } = await useAsyncData(
+const { data, pending: pendingMovies } = await useAsyncData(
   "fetchTopRatedMovies",
   () =>
     $fetch<RawMovieWithTotal>(`https://api.themoviedb.org/3/movie/top_rated`, {
@@ -41,22 +42,27 @@ const seriesFirst = ref(0);
 // const searchCurrentPage = ref(1);
 
 const fetchTopRatedSeries = async (page: number) => {
-  const rawTopRatedSeries = await $fetch<RawMovieWithTotal>(
-    "https://api.themoviedb.org/3/tv/top_rated",
-    {
-      params: {
-        api_key: config.public.tmdbApiKey,
-        include_adult: false,
-        language: "en-US",
-        page,
+  isSeriesPending.value = true;
+  try {
+    const rawTopRatedSeries = await $fetch<RawMovieWithTotal>(
+      "https://api.themoviedb.org/3/tv/top_rated",
+      {
+        params: {
+          api_key: config.public.tmdbApiKey,
+          include_adult: false,
+          language: "en-US",
+          page,
+        },
       },
-    },
-  );
+    );
 
-  topRatedSeries.value = convertToDbType(rawTopRatedSeries).movies.filter(
-    (item) => item.type !== "person",
-  );
-  topRatedSeriesTotal.value = rawTopRatedSeries.total_results; // for pagination
+    topRatedSeries.value = convertToDbType(rawTopRatedSeries).movies.filter(
+      (item) => item.type !== "person",
+    );
+    topRatedSeriesTotal.value = rawTopRatedSeries.total_results; // for pagination
+  } finally {
+    isSeriesPending.value = false;
+  }
 };
 
 // };
@@ -82,7 +88,7 @@ const handlePopularPageChange = async (event: PageState) => {
       <!-- Header Area (Now on Left) -->
       <div v-if="topRatedMovies.movies.length > 0 && isShowTopRatedMovies">
         <div
-          class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 text-center max-md:text-xl flex items-center justify-center gap-3 drop-shadow-sm transition-all hover:scale-105"
+          class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-red-500 text-center max-md:text-xl flex items-center justify-center gap-3 drop-shadow-sm transition-all hover:scale-105"
         >
           <div class="i-material-symbols-movie-filter" />
           Top Rated Movies
@@ -91,7 +97,7 @@ const handlePopularPageChange = async (event: PageState) => {
 
       <div v-if="topRatedSeries.length > 0 && isShowTopRatedSeries">
         <div
-          class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 text-center max-md:text-xl flex items-center justify-center gap-3 drop-shadow-sm transition-all hover:scale-105"
+          class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-red-500 text-center max-md:text-xl flex items-center justify-center gap-3 drop-shadow-sm transition-all hover:scale-105"
         >
           <div class="i-material-symbols-live-tv-rounded" />
           Top Rated Series
@@ -103,8 +109,13 @@ const handlePopularPageChange = async (event: PageState) => {
         <Button
           label="Top Rated Movies"
           icon="i-material-symbols-kid-star-sharp"
-          class=""
-          :pt="{ label: { class: 'max-md:text-xs' } }"
+          class="!bg-gradient-to-r !from-orange-500 !to-red-500 hover:!from-orange-600 hover:!to-red-600 !border-transparent !text-white shadow-md transition-all duration-200"
+          size="small"
+          :pt="{
+            root: { class: '!py-1 !px-2' },
+            label: { class: 'max-md:text-[10px] !text-xs font-semibold' },
+            icon: { class: '!text-xs mr-1' },
+          }"
           @click="
             () => {
               currentPage = 1;
@@ -118,8 +129,13 @@ const handlePopularPageChange = async (event: PageState) => {
         <Button
           label="Top Rated Series"
           icon="i-material-symbols-kid-star-sharp"
-          class=""
-          :pt="{ label: { class: 'max-md:text-xs' } }"
+          class="!bg-gradient-to-r !from-orange-500 !to-red-500 hover:!from-orange-600 hover:!to-red-600 !border-transparent !text-white shadow-md transition-all duration-200"
+          size="small"
+          :pt="{
+            root: { class: '!py-1 !px-2' },
+            label: { class: 'max-md:text-[10px] !text-xs font-semibold' },
+            icon: { class: '!text-xs mr-1' },
+          }"
           @click="
             () => {
               currentPage = 1;
@@ -133,7 +149,22 @@ const handlePopularPageChange = async (event: PageState) => {
       </div>
     </div>
 
-    <div v-if="topRatedMovies.movies.length > 0 && isShowTopRatedMovies">
+    <!-- Loading skeleton for movies -->
+    <div
+      v-if="pendingMovies && isShowTopRatedMovies"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 sm:gap-10 justify-items-center w-full max-w-[1100px] mx-auto my-6"
+    >
+      <ItemSkeleton :count="20" />
+    </div>
+
+    <!-- Loaded movies -->
+    <div
+      v-else-if="
+        !pendingMovies &&
+        topRatedMovies.movies.length > 0 &&
+        isShowTopRatedMovies
+      "
+    >
       <ItemSmart :list="topRatedMovies.movies" />
       <Paginator
         v-model:first="popularFirst"
@@ -144,7 +175,20 @@ const handlePopularPageChange = async (event: PageState) => {
       />
     </div>
 
-    <div v-if="topRatedSeries.length > 0 && isShowTopRatedSeries">
+    <!-- Loading skeleton for series -->
+    <div
+      v-if="isSeriesPending && isShowTopRatedSeries"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 sm:gap-10 justify-items-center w-full max-w-[1100px] mx-auto my-6"
+    >
+      <ItemSkeleton :count="20" />
+    </div>
+
+    <!-- Loaded series -->
+    <div
+      v-else-if="
+        !isSeriesPending && topRatedSeries.length > 0 && isShowTopRatedSeries
+      "
+    >
       <ItemSmart :list="topRatedSeries" />
       <Paginator
         v-model:first="seriesFirst"

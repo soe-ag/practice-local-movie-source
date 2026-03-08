@@ -17,6 +17,7 @@ const showToast = (type: "error" | "success", message: string) => {
 
 // Use Convex query to fetch favorite list
 const { data: favoriteListData } = useConvexQuery(api.favoriteList.get);
+const isPending = computed(() => favoriteListData.value === undefined);
 
 // Transform Convex data to DbMovie format
 const saveList = computed<DbMovie[]>(() => {
@@ -54,9 +55,11 @@ const removeFromFavoriteList = async (id: number, name: string) => {
   try {
     await removeFromFavorites({ id });
     showToast("success", name);
-  } catch (error: any) {
+  } catch (error) {
     const errorMessage =
-      error?.message || error?.toString() || "Failed to remove movie";
+      error instanceof Error
+        ? error.message
+        : String(error) || "Failed to remove movie";
     showToast("error", errorMessage);
     console.error(error);
   }
@@ -153,7 +156,7 @@ const resetFilters = () => {
         <div class="font-semibold text-gray-400">Filter By:</div>
         <select
           v-model="filterType"
-          class="bg-gray-800 text-gray-200 rounded p-1.5 text-sm outline-none border border-gray-700 focus:border-blue-500 cursor-pointer"
+          class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded p-1.5 text-sm outline-none border border-gray-300 dark:border-gray-700 focus:border-blue-500 cursor-pointer"
         >
           <option value="">All Types</option>
           <option value="movie">Movies</option>
@@ -161,7 +164,7 @@ const resetFilters = () => {
         </select>
         <select
           v-model="filterRating"
-          class="bg-gray-800 text-gray-200 rounded p-1.5 text-sm outline-none border border-gray-700 focus:border-blue-500 cursor-pointer"
+          class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded p-1.5 text-sm outline-none border border-gray-300 dark:border-gray-700 focus:border-blue-500 cursor-pointer"
         >
           <option value="">All Ratings</option>
           <option value="lt7">Less than 7</option>
@@ -171,7 +174,7 @@ const resetFilters = () => {
         </select>
         <select
           v-model="filterYear"
-          class="bg-gray-800 text-gray-200 rounded p-1.5 text-sm outline-none border border-gray-700 focus:border-blue-500 cursor-pointer"
+          class="bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded p-1.5 text-sm outline-none border border-gray-300 dark:border-gray-700 focus:border-blue-500 cursor-pointer"
         >
           <option value="">All Years</option>
           <option value="lt2000">Before 2000</option>
@@ -227,16 +230,27 @@ const resetFilters = () => {
         </div>
       </div>
     </div>
+
+    <!-- Loading Skeleton -->
     <div
-      v-if="sortedList.length"
+      v-if="isPending"
       class="flex flex-wrap justify-start items-start px-2 my-4 md:px-8 max-w-[1400px] mx-auto"
     >
-      <ItemDumb
-        :list="sortedList"
-        :is-list="false"
-        @remove-from-list="removeFromFavoriteList"
-      />
+      <ItemSkeleton :count="10" />
     </div>
-    <div v-else class="mx-4">No favorite movies.</div>
+
+    <div v-else>
+      <div
+        v-if="sortedList.length"
+        class="flex flex-wrap justify-start items-start px-2 my-4 md:px-8 max-w-[1400px] mx-auto"
+      >
+        <ItemDumb
+          :list="sortedList"
+          :is-list="false"
+          @remove-from-list="removeFromFavoriteList"
+        />
+      </div>
+      <div v-else class="mx-4">No favorite movies.</div>
+    </div>
   </div>
 </template>

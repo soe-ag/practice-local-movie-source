@@ -17,6 +17,7 @@ export default defineNuxtConfig({
     "@unocss/nuxt",
     "@primevue/nuxt-module",
     "@nuxt/eslint",
+    "@vueuse/nuxt",
     "convex-nuxt", // Temporarily disabled until CONVEX_URL is set
   ],
   // primevue: {
@@ -43,16 +44,11 @@ export default defineNuxtConfig({
   primevue: {
     usePrimeVue: true,
     options: {
-      // ripple: true,
-      // inputVariant: "filled",
       theme: {
         preset: Aura,
-        // options: {
-        //   prefix: "p",
-        // darkModeSelector: "system",
-        // darkModeSelector: ".my-app-dark",
-        //   cssLayer: false,
-        // },
+        options: {
+          darkModeSelector: ".dark",
+        },
       },
     },
   },
