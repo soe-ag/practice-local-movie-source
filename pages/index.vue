@@ -119,7 +119,7 @@ const handleSearchPageChange = async (event: PageState) => {
   <div class="py-2 mx-4">
     <Toast class="font-sans" />
     <div
-      class="flex flex-col md:flex-row gap-4 my-2 md:items-center justify-between lg:mx-[110px]"
+      class="flex flex-col md:flex-row gap-4 my-2 md:items-center justify-between"
     >
       <!-- Header Area (Now on Left) -->
       <div v-if="!isShowSearchResult && popularMovies.movies.length > 0">
@@ -127,7 +127,7 @@ const handleSearchPageChange = async (event: PageState) => {
           class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-red-500 text-center max-md:text-xl flex items-center justify-center gap-3 drop-shadow-sm transition-all hover:scale-105"
         >
           <div
-            class="i-material-symbols-local-fire-department-rounded text-red-500"
+            class="i-material-symbols-local-fire-department-rounded text-transparent bg-gradient-to-r from-orange-400 to-red-500"
           />
           Trending Movies
         </div>
@@ -188,14 +188,14 @@ const handleSearchPageChange = async (event: PageState) => {
     <!-- Loading state / Skeletons for popular trending movies -->
     <div
       v-if="pending && !isShowSearchResult"
-      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 sm:gap-10 justify-items-center w-full max-w-[1100px] mx-auto my-6"
+      class="w-full max-w-[1920px] mx-auto mt-4 mb-0"
     >
-      <ItemSkeleton :count="20" />
+      <ItemSkeletonLarge :count="20" />
     </div>
 
     <!-- Movies list -->
     <div v-else-if="popularMovies.movies.length > 0 && !isShowSearchResult">
-      <ItemSmart :list="popularMovies.movies" />
+      <ItemSmart :list="popularMovies.movies" :is-large="true" />
       <Paginator
         v-model:first="popularFirst"
         :rows="20"
@@ -218,9 +218,9 @@ const handleSearchPageChange = async (event: PageState) => {
     <!-- Loading state / Skeletons for search results -->
     <div
       v-if="isSearchPending && isShowSearchResult"
-      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 sm:gap-10 justify-items-center w-full max-w-[1100px] mx-auto my-6"
+      class="w-full max-w-[1920px] mx-auto mt-4 mb-0"
     >
-      <ItemSkeleton :count="20" />
+      <ItemSkeletonLarge :count="20" />
     </div>
 
     <!-- Search Results List -->
@@ -229,7 +229,7 @@ const handleSearchPageChange = async (event: PageState) => {
         !isSearchPending && searchResults.length > 0 && isShowSearchResult
       "
     >
-      <ItemSmart :list="searchResults" />
+      <ItemSmart :list="searchResults" :is-large="true" />
       <Paginator
         v-model:first="searchFirst"
         :rows="20"

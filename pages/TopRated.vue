@@ -83,14 +83,16 @@ const handlePopularPageChange = async (event: PageState) => {
   <div class="py-2 mx-4">
     <Toast class="font-sans" />
     <div
-      class="flex flex-col md:flex-row gap-4 my-2 md:items-center justify-between lg:mx-[110px]"
+      class="flex flex-col md:flex-row gap-4 my-2 md:items-center justify-between"
     >
       <!-- Header Area (Now on Left) -->
       <div v-if="topRatedMovies.movies.length > 0 && isShowTopRatedMovies">
         <div
           class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-red-500 text-center max-md:text-xl flex items-center justify-center gap-3 drop-shadow-sm transition-all hover:scale-105"
         >
-          <div class="i-material-symbols-movie-filter" />
+          <div
+            class="i-material-symbols-live-tv-rounded text-transparent bg-gradient-to-r from-orange-400 to-red-500"
+          />
           Top Rated Movies
         </div>
       </div>
@@ -99,7 +101,9 @@ const handlePopularPageChange = async (event: PageState) => {
         <div
           class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-orange-400 to-red-500 text-center max-md:text-xl flex items-center justify-center gap-3 drop-shadow-sm transition-all hover:scale-105"
         >
-          <div class="i-material-symbols-live-tv-rounded" />
+          <div
+            class="i-material-symbols-live-tv-rounded text-transparent bg-gradient-to-r from-orange-400 to-red-500"
+          />
           Top Rated Series
         </div>
       </div>
@@ -152,7 +156,7 @@ const handlePopularPageChange = async (event: PageState) => {
     <!-- Loading skeleton for movies -->
     <div
       v-if="pendingMovies && isShowTopRatedMovies"
-      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 sm:gap-10 justify-items-center w-full max-w-[1100px] mx-auto my-6"
+      class="flex flex-wrap justify-center sm:justify-start items-start px-2 md:px-8 max-w-[1400px] mx-auto my-6"
     >
       <ItemSkeleton :count="20" />
     </div>
@@ -178,7 +182,7 @@ const handlePopularPageChange = async (event: PageState) => {
     <!-- Loading skeleton for series -->
     <div
       v-if="isSeriesPending && isShowTopRatedSeries"
-      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 sm:gap-10 justify-items-center w-full max-w-[1100px] mx-auto my-6"
+      class="flex flex-wrap justify-center sm:justify-start items-start px-2 md:px-8 max-w-[1400px] mx-auto my-6"
     >
       <ItemSkeleton :count="20" />
     </div>

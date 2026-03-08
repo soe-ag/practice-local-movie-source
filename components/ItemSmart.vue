@@ -3,9 +3,13 @@ import type { DbMovie } from "~/utils/type";
 import { useToast } from "primevue/usetoast";
 import { api } from "~/convex/_generated/api";
 
-const props = defineProps<{
-  list: DbMovie[];
-}>();
+const props = withDefaults(
+  defineProps<{
+    list: DbMovie[];
+    isLarge?: boolean;
+  }>(),
+  { isLarge: false },
+);
 
 const toast = useToast();
 const { mutate: addToWatchList } = useConvexMutation(api.watchList.add);
@@ -57,65 +61,13 @@ const addMovie = async (item: DbMovie, dbName: string) => {
 </script>
 
 <template>
+  <div v-if="props.isLarge" class="w-full max-w-[1920px] mx-auto mt-4 mb-0">
+    <ItemLarge :list="props.list" is-list @add-movie="addMovie" />
+  </div>
   <div
-    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8 sm:gap-10 justify-items-center w-full max-w-[1100px] mx-auto my-6"
+    v-else
+    class="flex flex-wrap justify-center sm:justify-start items-start px-2 md:px-8 max-w-[1400px] mx-auto"
   >
-    <!-- Responsive grid that guarantees max 5 items per row -->
-
-    <!-- <div
-      v-for="item in props.list"
-      :key="item.id"
-      class="w-48 h-70 m-2 p-1 flex flex-col max-md:w-36 max-md:h-58"
-    >
-      <div class="flex gap-2 relative group">
-        <NuxtImg
-          :src="item.posterUrl"
-          class="rounded-1 w-35 max-md:w-30 max-md:h-45"
-        />
-        <div
-          class="px-4 py-8 text-xs line-clamp-3 text-ellipsis absolute inset-0 flex items-center justify-center bg-black/80 text-white rounded-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        >
-          {{ item.overview }}
-        </div>
-        <div
-          class="absolute my-1 text-xs flex flex-col justify-end w-7 right-8 items-end gap-1 max-md:right-0"
-        >
-          <div class="bg-blue rounded-full px-1 text-center mr-0 w-full">
-            {{ item.rating === 0 ? "-" : item.rating }}
-          </div>
-          <div
-            v-if="item.type === 'tv'"
-            class="px-2 text-xs rounded-full bg-green-5"
-          >
-            {{ item.type }}
-          </div>
-        </div>
-        <div class="flex flex-col gap-2 justify-between">
-          <div>
-            <Chip
-              v-if="item.vote_average"
-              :label="item.vote_average.toFixed(1)"
-              class="h-6 text-xs bg-blue!"
-            />
-          </div>
-          <div class="w-8 max-md:w-4">
-            <div
-              class="i-material-symbols-favorite text-gray text-xl cursor-pointer hover:text-red mb-1 mx-auto hover:animate-bounce"
-              @click="() => addMovie(item, 'favoriteList')"
-            />
-
-            <div
-              class="i-material-symbols-add-rounded text-gray text-xl cursor-pointer hover:text-green mx-auto hover:animate-pulse"
-              @click="() => addMovie(item, 'watchList')"
-            />
-          </div>
-        </div>
-      </div>
-      <div class="my-1 max-md:text-sm">
-        {{ item.title }}
-        ({{ item.release }})
-      </div>
-    </div> -->
     <ItemDumb :list="props.list" is-list @add-movie="addMovie" />
   </div>
 </template>
