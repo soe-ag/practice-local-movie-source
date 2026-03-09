@@ -14,3 +14,12 @@
     box-shadow: none;
   }
 }
+
+/* Global Paginator overrides - lock to project soft red/orange theme */
+html body .p-paginator .p-paginator-pages .p-paginator-page.p-highlight,
+html body .p-paginator .p-paginator-pages .p-paginator-page[data-p-highlight="true"],
+html body .p-paginator .p-paginator-pages .p-paginator-page[aria-current="page"] {
+  background: linear-gradient(to right, #f97316, #ef4444) !important;
+  color: white !important;
+  border-color: transparent !important;
+}
