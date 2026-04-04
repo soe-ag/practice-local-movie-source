@@ -4,8 +4,6 @@ definePageMeta({
 });
 const router = useRouter();
 
-const email = ref<string>("soeag.dev@gmail.com");
-const password = ref<string>("soeagdev");
 const showError = ref(false);
 
 // TODO: Implement Convex authentication
