@@ -12,6 +12,8 @@
     "lint": "eslint .",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "tsc": "nuxi typecheck"
   },
   "dependencies": {
@@ -36,6 +38,7 @@
     "@unocss/preset-web-fonts": "^66.6.7",
     "typescript": "^6.0.2",
     "unocss": "^66.6.7",
+    "vitest": "^4.1.2",
     "vue-tsc": "^3.2.6"
   }
 }

@@ -63,18 +63,20 @@ const route = useRoute();
 
       <!-- Right Menu Item -->
       <div class="col-span-1 flex justify-end items-center gap-1 pr-2">
-        <button
-          class="text-gray-600 dark:text-gray-300 hover:text-yellow-500 dark:hover:text-yellow-400 transition-colors cursor-pointer text-xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 outline-none border-none bg-transparent flex items-center justify-center"
-          @click="toggleDark()"
-        >
-          <div
-            :class="
-              isDark
-                ? 'i-material-symbols-light-mode'
-                : 'i-material-symbols-dark-mode'
-            "
-          />
-        </button>
+        <ClientOnly>
+          <button
+            class="text-gray-600 dark:text-gray-300 hover:text-yellow-500 dark:hover:text-yellow-400 transition-colors cursor-pointer text-xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 outline-none border-none bg-transparent flex items-center justify-center"
+            @click="toggleDark()"
+          >
+            <div
+              :class="
+                isDark
+                  ? 'i-material-symbols-light-mode'
+                  : 'i-material-symbols-dark-mode'
+              "
+            />
+          </button>
+        </ClientOnly>
 
         <!-- <NuxtLink
           :to="menuItems[4].route"

@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancel any in-progress run for the same branch/PR to prevent redundant runs
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint · Type · Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json # reads "engines.node" field
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Type check
+        run: npm run tsc
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          CONVEX_URL: ${{ secrets.CONVEX_URL }}
+
+      - name: Build
+        run: npm run build
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          CONVEX_URL: ${{ secrets.CONVEX_URL }}
