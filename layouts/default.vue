@@ -96,6 +96,8 @@ const route = useRoute();
       <slot />
     </main>
 
+    <MovieDrawer />
+
     <!-- Footer -->
     <footer
       class="w-full py-4 mt-auto bg-white/40 dark:bg-black/40 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 transition-colors duration-300"

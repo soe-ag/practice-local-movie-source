@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DbMovie } from "~/utils/type";
 import { ref, computed } from "vue";
+import { useMovieDrawer } from "~/composables/useMovieDrawer";
 
 const hoverIndex = ref<number | null>(null);
 
@@ -13,6 +14,8 @@ const emit = defineEmits<{
   (e: "removeFromList", id: number, title: string): void;
   (e: "addMovie", item: DbMovie, dbName: string): void;
 }>();
+
+const { openDrawer } = useMovieDrawer();
 
 // Always 5 items per row
 const itemsPerRow = computed(() => 5);
@@ -46,7 +49,8 @@ const chunkedList = computed(() => {
         @mouseleave="hoverIndex = null"
       >
         <div
-          class="relative overflow-hidden rounded-lg transition-all duration-300 w-full aspect-[2/3] flex-shrink-0"
+          class="relative overflow-hidden rounded-lg transition-all duration-300 w-full aspect-[2/3] flex-shrink-0 cursor-pointer"
+          @click="openDrawer(item)"
         >
           <NuxtImg
             :src="item.posterUrl"
@@ -78,7 +82,7 @@ const chunkedList = computed(() => {
                     class="i-material-symbols-favorite text-gray-300 text-2xl cursor-pointer hover:text-red-500 transition-colors hover:animate-bounce"
                     :aria-label="`Add ${item.title} to favorites`"
                     :title="`Add ${item.title} to favorites`"
-                    @click="emit('addMovie', item, 'favoriteList')"
+                    @click.stop="emit('addMovie', item, 'favoriteList')"
                   />
 
                   <button
@@ -86,7 +90,7 @@ const chunkedList = computed(() => {
                     class="i-material-symbols-add-rounded text-gray-300 text-2xl cursor-pointer hover:text-green-500 transition-colors hover:animate-pulse"
                     :aria-label="`Add ${item.title} to watchlist`"
                     :title="`Add ${item.title} to watchlist`"
-                    @click="emit('addMovie', item, 'watchList')"
+                    @click.stop="emit('addMovie', item, 'watchList')"
                   />
                 </div>
                 <button
@@ -95,7 +99,7 @@ const chunkedList = computed(() => {
                   class="i-material-symbols-delete-forever-outline-rounded text-gray-300 text-2xl cursor-pointer hover:text-red-500 transition-colors hover:animate-pulse"
                   :aria-label="`Remove ${item.title} from list`"
                   :title="`Remove ${item.title} from list`"
-                  @click="emit('removeFromList', item.id, item.title)"
+                  @click.stop="emit('removeFromList', item.id, item.title)"
                 />
               </div>
             </div>
