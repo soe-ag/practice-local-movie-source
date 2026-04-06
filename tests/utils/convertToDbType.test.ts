@@ -27,6 +27,12 @@ const wrapRaw = (items: RawMovie[]): RawMovieWithTotal => ({
 // ─── tests ───────────────────────────────────────────────────────────────────
 
 describe("convertToDbType", () => {
+  it("returns an empty movie list when results is empty", () => {
+    const result = convertToDbType(wrapRaw([]));
+    expect(result.totalResults).toBe(0);
+    expect(result.movies).toEqual([]);
+  });
+
   it("maps total_results → totalResults", () => {
     const result = convertToDbType(wrapRaw([makeRaw(), makeRaw({ id: 2 })]));
     expect(result.totalResults).toBe(2);
@@ -129,5 +135,18 @@ describe("convertToDbType", () => {
   it("uses media_type as type", () => {
     const result = convertToDbType(wrapRaw([makeRaw({ media_type: "tv" })]));
     expect(result.movies[0].type).toBe("tv");
+  });
+
+  it("falls back to movie type when media_type is missing", () => {
+    const result = convertToDbType(
+      wrapRaw([makeRaw({ media_type: undefined as unknown as string })]),
+    );
+    expect(result.movies[0].type).toBe("movie");
+  });
+
+  it("sets addedAt as a Date for each mapped movie", () => {
+    const result = convertToDbType(wrapRaw([makeRaw(), makeRaw({ id: 2 })]));
+    expect(result.movies[0].addedAt).toBeInstanceOf(Date);
+    expect(result.movies[1].addedAt).toBeInstanceOf(Date);
   });
 });
