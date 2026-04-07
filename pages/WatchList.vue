@@ -41,6 +41,7 @@ const watchList = computed<DbMovie[]>(() => {
       rating: movie.rating,
       release: movie.release,
       type: movie.type,
+      genres: movie.genres ?? [],
       addedAt,
       overview: movie.overview,
     };

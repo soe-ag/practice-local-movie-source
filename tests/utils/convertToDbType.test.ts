@@ -13,6 +13,7 @@ const makeRaw = (overrides: Partial<RawMovie> = {}): RawMovie => ({
   title: "Test Movie",
   poster_path: "/abc.jpg",
   media_type: "movie",
+  genre_ids: [28, 12],
   vote_average: 7.859,
   overview: "A test overview.",
   release_date: "2023-06-15",
@@ -115,10 +116,10 @@ describe("convertToDbType", () => {
     expect(result.movies[0].rating).toBe(0);
   });
 
-  it("truncates overview longer than 220 chars and appends ' ...'", () => {
+  it("keeps long overview unchanged", () => {
     const long = "x".repeat(230);
     const result = convertToDbType(wrapRaw([makeRaw({ overview: long })]));
-    expect(result.movies[0].overview).toBe(`${"x".repeat(220)} ...`);
+    expect(result.movies[0].overview).toBe(long);
   });
 
   it("keeps overview shorter than 220 chars unchanged", () => {
@@ -130,6 +131,27 @@ describe("convertToDbType", () => {
   it("sets overview to empty string when absent", () => {
     const result = convertToDbType(wrapRaw([makeRaw({ overview: "" })]));
     expect(result.movies[0].overview).toBe("");
+  });
+
+  it("maps genre_ids to genre names", () => {
+    const result = convertToDbType(
+      wrapRaw([makeRaw({ genre_ids: [28, 10765] })]),
+    );
+    expect(result.movies[0].genres).toEqual(["Action", "Sci-Fi & Fantasy"]);
+  });
+
+  it("ignores unknown genre ids", () => {
+    const result = convertToDbType(
+      wrapRaw([makeRaw({ genre_ids: [999999, 28] })]),
+    );
+    expect(result.movies[0].genres).toEqual(["Action"]);
+  });
+
+  it("sets genres to empty array when absent", () => {
+    const result = convertToDbType(
+      wrapRaw([makeRaw({ genre_ids: undefined })]),
+    );
+    expect(result.movies[0].genres).toEqual([]);
   });
 
   it("uses media_type as type", () => {

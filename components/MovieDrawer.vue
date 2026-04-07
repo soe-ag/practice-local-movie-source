@@ -79,6 +79,19 @@ const ratingText = computed(() => {
         </div>
 
         <div
+          v-if="selectedMovie.genres && selectedMovie.genres.length"
+          class="mb-5 flex flex-wrap items-center gap-2"
+        >
+          <span
+            v-for="genre in selectedMovie.genres"
+            :key="genre"
+            class="px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/12 text-blue-700 border border-blue-500/35 dark:bg-blue-500/20 dark:text-blue-200"
+          >
+            {{ genre }}
+          </span>
+        </div>
+
+        <div
           class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400 mb-2"
         >
           Overview

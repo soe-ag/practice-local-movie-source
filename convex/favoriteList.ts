@@ -18,6 +18,7 @@ export const add = mutation({
     rating: v.number(),
     release: v.union(v.number(), v.null()),
     type: v.string(),
+    genres: v.optional(v.array(v.string())),
     overview: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -41,6 +42,7 @@ export const add = mutation({
       rating: args.rating,
       release: args.release,
       type: args.type,
+      genres: args.genres,
       overview: args.overview,
       addedAt,
     });

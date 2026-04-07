@@ -14,9 +14,7 @@ vi.stubGlobal(
   },
 );
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const { useMovieDrawer } =
-  (await import("~/composables/useMovieDrawer")) as any;
+const { useMovieDrawer } = await import("~/composables/useMovieDrawer");
 
 const sampleMovie = {
   id: 7,
@@ -25,6 +23,7 @@ const sampleMovie = {
   rating: 8.1,
   release: 2024,
   type: "movie",
+  genres: ["Action", "Drama"],
   addedAt: new Date(1700000000000),
   overview: "drawer overview",
 };

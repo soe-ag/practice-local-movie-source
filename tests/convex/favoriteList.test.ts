@@ -12,6 +12,7 @@ vi.mock("convex/values", () => ({
     union: (...args: unknown[]) => ({ type: "union", args }),
     null: () => "null",
     optional: (arg: unknown) => ({ type: "optional", arg }),
+    array: (arg: unknown) => ({ type: "array", arg }),
   },
 }));
 
@@ -25,6 +26,7 @@ const baseMovieArgs = {
   rating: 9.2,
   release: 2023,
   type: "movie",
+  genres: ["Drama"],
   overview: "favorite overview",
 };
 

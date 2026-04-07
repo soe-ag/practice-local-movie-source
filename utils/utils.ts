@@ -1,7 +1,13 @@
+import { GENRE_BY_ID } from "~/utils/genres";
+
 export const convertToDbType = (item: RawMovieWithTotal): DbMovieWithTotal => {
   return {
     totalResults: item.total_results,
     movies: item.results.map((item) => {
+      const genres = (item.genre_ids ?? [])
+        .map((id) => GENRE_BY_ID[id])
+        .filter((genreName): genreName is string => Boolean(genreName));
+
       return {
         id: item.id,
         title: item.title ?? item.name ?? "no title",
@@ -15,12 +21,9 @@ export const convertToDbType = (item: RawMovieWithTotal): DbMovieWithTotal => {
             ? Number(item.release_date.split("-")[0])
             : null,
         type: item.media_type ?? "movie",
+        genres,
         addedAt: new Date(),
-        overview: item.overview
-          ? item.overview.length > 220
-            ? `${item.overview.slice(0, 220)} ...`
-            : item.overview
-          : "",
+        overview: item.overview ?? "",
       };
     }),
   };

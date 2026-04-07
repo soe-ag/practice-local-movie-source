@@ -7,6 +7,7 @@ export type RawMovie = {
   first_air_date?: string;
   release_date?: string;
   media_type: string;
+  genre_ids?: number[];
   vote_average: number;
   overview: string;
 };
@@ -23,6 +24,7 @@ export type DbMovie = {
   rating: number;
   release: number | null;
   type: string;
+  genres: string[];
   addedAt: Date;
   overview?: string;
 };

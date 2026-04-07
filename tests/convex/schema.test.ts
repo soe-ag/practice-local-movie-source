@@ -22,6 +22,7 @@ vi.mock("convex/values", () => ({
   v: {
     number: () => ({ kind: "number" }),
     string: () => ({ kind: "string" }),
+    array: (inner: unknown) => ({ kind: "array", inner }),
     null: () => ({ kind: "null" }),
     optional: (inner: unknown) => ({ kind: "optional", inner }),
     union: (...inners: unknown[]) => ({ kind: "union", inners }),
@@ -53,5 +54,13 @@ describe("convex/schema", () => {
 
     expect(schema.favoriteList.shape.addedAt.kind).toBe("union");
     expect(schema.favoriteList.shape.addedAt.inners).toHaveLength(2);
+  });
+
+  it("defines optional genres array in both tables", () => {
+    expect(schema.watchList.shape.genres.kind).toBe("optional");
+    expect(schema.watchList.shape.genres.inner.kind).toBe("array");
+
+    expect(schema.favoriteList.shape.genres.kind).toBe("optional");
+    expect(schema.favoriteList.shape.genres.inner.kind).toBe("array");
   });
 });

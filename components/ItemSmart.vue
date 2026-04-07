@@ -39,6 +39,7 @@ const addMovie = async (item: DbMovie, dbName: string) => {
       rating: item.rating,
       release: item.release,
       type: item.type,
+      genres: item.genres,
       overview: item.overview,
     };
 

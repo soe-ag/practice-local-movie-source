@@ -18,6 +18,8 @@ export default defineSchema({
     release: v.union(v.number(), v.null()),
     // Media type (e.g., "movie", "tv")
     type: v.string(),
+    // Genre names for display in the UI drawer
+    genres: v.optional(v.array(v.string())),
     // Movie overview/description (optional)
     overview: v.optional(v.string()),
   }).index("by_movie_id", ["id"]),
@@ -40,6 +42,8 @@ export default defineSchema({
     release: v.union(v.number(), v.null()),
     // Media type (e.g., "movie", "tv")
     type: v.string(),
+    // Genre names for display in the UI drawer
+    genres: v.optional(v.array(v.string())),
     // Movie overview/description (optional)
     overview: v.optional(v.string()),
   }).index("by_movie_id", ["id"]),
