@@ -100,6 +100,25 @@ describe("convex/watchList", () => {
     expect(result).toBe("new_doc_id");
   });
 
+  it("add normalizes full TMDB poster URL to path before insert", async () => {
+    const { ctx, first, insert } = makeCtx();
+    first.mockResolvedValue(null);
+    insert.mockResolvedValue("new_doc_id");
+
+    vi.spyOn(Date, "now").mockReturnValue(1700000000000);
+
+    await mod.add.handler(ctx, {
+      ...baseMovieArgs,
+      posterUrl: "https://image.tmdb.org/t/p/w200/abc123.jpg",
+    });
+
+    expect(insert).toHaveBeenCalledWith("watchList", {
+      ...baseMovieArgs,
+      posterUrl: "/abc123.jpg",
+      addedAt: 1700000000000,
+    });
+  });
+
   it("remove throws when movie does not exist", async () => {
     const { ctx, first } = makeCtx();
     first.mockResolvedValue(null);

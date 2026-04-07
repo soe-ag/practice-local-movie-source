@@ -2,6 +2,19 @@
 import type { DbMovie } from "~/utils/type";
 import { api } from "~/convex/_generated/api";
 
+const TMDB_POSTER_SIZE = "w300";
+
+const toDisplayPosterUrl = (posterValue: string) => {
+  if (!posterValue) return "/images/default-movie-poster.jpg";
+  if (posterValue.startsWith("http://") || posterValue.startsWith("https://")) {
+    return posterValue;
+  }
+  if (posterValue.startsWith("/images/")) {
+    return posterValue;
+  }
+  return `https://image.tmdb.org/t/p/${TMDB_POSTER_SIZE}${posterValue.startsWith("/") ? posterValue : `/${posterValue}`}`;
+};
+
 const toast = useToast();
 const showToast = (type: "error" | "success", message: string) => {
   toast.add({
@@ -37,7 +50,7 @@ const saveList = computed<DbMovie[]>(() => {
     return {
       id: movie.id,
       title: movie.title,
-      posterUrl: movie.posterUrl,
+      posterUrl: toDisplayPosterUrl(movie.posterUrl),
       rating: movie.rating,
       release: movie.release,
       type: movie.type,
