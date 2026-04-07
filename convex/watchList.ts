@@ -9,7 +9,7 @@ const normalizePosterPath = (value: string): string => {
   }
 
   if (value.startsWith("/")) {
-    return value.split("?")[0];
+    return value.split("?")[0] ?? value;
   }
 
   const match = value.match(/\/t\/p\/(?:w\d+|original)(\/[^?]+)/);
