@@ -24,6 +24,40 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 | `/Favorite` | Favorites list (sortable, filterable) |
 | `/login` | Login page |
 
+## Project Structure
+
+```
+├── pages/               # Nuxt page components
+│   ├── index.vue        # Home — trending movies + multi-search
+│   ├── TopRated.vue     # Top-rated movies and TV series
+│   ├── WatchList.vue    # Personal watch list
+│   ├── Favorite.vue     # Favorites list
+│   └── login.vue        # Login page
+├── components/          # Reusable Vue components
+│   ├── ItemSmart.vue    # Smart item wrapper (chooses large/small layout)
+│   ├── ItemLarge.vue    # Large movie card
+│   ├── itemDumb.vue     # Small/compact movie card
+│   ├── ItemSkeleton.vue     # Loading skeleton (small)
+│   ├── ItemSkeletonLarge.vue # Loading skeleton (large)
+│   └── MovieDrawer.vue  # Side drawer with movie details
+├── composables/
+│   └── useMovieDrawer.ts  # Composable for drawer open/close state
+├── convex/              # Convex backend functions and schema
+│   ├── schema.ts        # Database schema (watchList, favoriteList tables)
+│   ├── watchList.ts     # Watch list queries and mutations
+│   └── favoriteList.ts  # Favorite list queries and mutations
+├── utils/
+│   ├── type.ts          # Shared TypeScript types
+│   ├── utils.ts         # convertToDbType helper
+│   └── genres.ts        # TMDB genre ID → name mapping
+├── layouts/
+│   ├── default.vue      # Default layout (nav + MovieDrawer)
+│   └── login.vue        # Minimal layout for the login page
+└── tests/               # Vitest unit tests
+    ├── utils/            # Tests for utility functions
+    └── convex/           # Tests for Convex schema and mutations
+```
+
 ## Tech Stack
 
 - [Nuxt 3](https://nuxt.com/) — Vue-based full-stack framework
@@ -32,6 +66,7 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 - [UnoCSS](https://unocss.dev/) — utility-first CSS engine
 - [VueUse](https://vueuse.org/) — Vue composition utilities
 - [TMDB API](https://developer.themoviedb.org/docs) — movie data source
+- [Vitest](https://vitest.dev/) — unit testing framework
 
 ## Prerequisites
 
@@ -78,6 +113,24 @@ Run the test suite:
 
 ```bash
 npm test
+```
+
+Run tests in watch mode:
+
+```bash
+npm run test:watch
+```
+
+Run TypeScript type checking:
+
+```bash
+npm run tsc
+```
+
+Run the linter:
+
+```bash
+npm run lint
 ```
 
 ## Production
