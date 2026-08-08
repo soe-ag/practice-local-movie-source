@@ -65,9 +65,13 @@ const { mutate: removeFromFavorites } = useConvexMutation(
   api.favoriteList.remove,
 );
 
-const removeFromFavoriteList = async (id: number, name: string) => {
+const removeFromFavoriteList = async (
+  id: number,
+  type: string,
+  name: string,
+) => {
   try {
-    await removeFromFavorites({ id });
+    await removeFromFavorites({ id, type });
     showToast("success", name);
   } catch (error) {
     const errorMessage =

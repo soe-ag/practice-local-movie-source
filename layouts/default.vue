@@ -26,6 +26,11 @@ const menuItems = ref([
     icon: "i-material-symbols-movie-filter",
     route: "/toprated",
   },
+  {
+    label: "Recommendations",
+    icon: "i-material-symbols-recommend-rounded",
+    route: "/recommendations",
+  },
   // {
   //   label: "",
   //   icon: "i-logos-nuxt-icon",
@@ -41,10 +46,10 @@ const route = useRoute();
     class="min-h-screen flex flex-col bg-[url('/images/pexels-pavel-danilyuk-7234404.jpg')] bg-cover bg-fixed bg-blend-overlay bg-center bg-gray-50 dark:bg-#0e1111 text-gray-900 dark:text-gray-100 transition-colors duration-300"
   >
     <nav
-      class="grid grid-cols-5 items-center p-1 bg-white/80 dark:bg-#0e1111/90 backdrop-blur-md shadow-sm transition-colors duration-300"
+      class="grid grid-cols-6 items-center p-1 bg-white/80 dark:bg-#0e1111/90 backdrop-blur-md shadow-sm transition-colors duration-300"
     >
       <!-- Left Menu Items -->
-      <div class="col-span-4 flex gap-2">
+      <div class="col-span-5 flex gap-2">
         <div v-for="menu in menuItems" :key="menu.label">
           <NuxtLink
             :to="menu.route"

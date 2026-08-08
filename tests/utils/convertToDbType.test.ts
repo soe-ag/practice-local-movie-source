@@ -166,6 +166,15 @@ describe("convertToDbType", () => {
     expect(result.movies[0].type).toBe("movie");
   });
 
+  it("uses an explicit TV fallback for TV list responses", () => {
+    const result = convertToDbType(
+      wrapRaw([makeRaw({ media_type: undefined, title: undefined, name: "TV" })]),
+      "tv",
+    );
+
+    expect(result.movies[0].type).toBe("tv");
+  });
+
   it("sets addedAt as a Date for each mapped movie", () => {
     const result = convertToDbType(wrapRaw([makeRaw(), makeRaw({ id: 2 })]));
     expect(result.movies[0].addedAt).toBeInstanceOf(Date);

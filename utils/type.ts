@@ -6,9 +6,11 @@ export type RawMovie = {
   poster_path: string;
   first_air_date?: string;
   release_date?: string;
-  media_type: string;
+  media_type?: string;
   genre_ids?: number[];
   vote_average: number;
+  vote_count?: number;
+  popularity?: number;
   overview: string;
 };
 
@@ -27,6 +29,8 @@ export type DbMovie = {
   genres: string[];
   addedAt: Date;
   overview?: string;
+  voteCount?: number;
+  popularity?: number;
 };
 
 export type DbMovieWithTotal = {
@@ -35,3 +39,29 @@ export type DbMovieWithTotal = {
 };
 
 export type LocalList = "watchList" | "favoriteList";
+
+export type MediaType = "movie" | "tv";
+
+export type RecommendationSeed = Pick<
+  DbMovie,
+  "id" | "title" | "type" | "genres" | "posterUrl"
+>;
+
+export type RecommendationGroup = {
+  seed: RecommendationSeed;
+  candidates: DbMovie[];
+};
+
+export type RecommendationCandidate = DbMovie & {
+  seedTitles: string[];
+  sharedGenres: string[];
+  seedMatchCount: number;
+  voteCount: number;
+  popularity: number;
+};
+
+export type RecommendationFilters = {
+  type?: string;
+  rating?: string;
+  genre?: string;
+};

@@ -44,7 +44,9 @@ export const add = mutation({
     // Check if movie already exists in watchlist
     const existing = await ctx.db
       .query("watchList")
-      .withIndex("by_movie_id", (q) => q.eq("id", args.id))
+      .withIndex("by_media_item", (q) =>
+        q.eq("type", args.type).eq("id", args.id),
+      )
       .first();
 
     if (existing) {
@@ -73,12 +75,15 @@ export const add = mutation({
 export const remove = mutation({
   args: {
     id: v.number(),
+    type: v.string(),
   },
   handler: async (ctx, args) => {
     // Find the movie by TMDB ID
     const movie = await ctx.db
       .query("watchList")
-      .withIndex("by_movie_id", (q) => q.eq("id", args.id))
+      .withIndex("by_media_item", (q) =>
+        q.eq("type", args.type).eq("id", args.id),
+      )
       .first();
 
     if (!movie) {

@@ -65,9 +65,13 @@ const { mutate: removeFromWatchListMutation } = useConvexMutation(
   api.watchList.remove,
 );
 
-const removeFromWatchList = async (id: number, name: string) => {
+const removeFromWatchList = async (
+  id: number,
+  type: string,
+  name: string,
+) => {
   try {
-    await removeFromWatchListMutation({ id });
+    await removeFromWatchListMutation({ id, type });
     showToast("success", name);
   } catch (error) {
     const errorMessage =

@@ -22,7 +22,7 @@ export default defineSchema({
     genres: v.optional(v.array(v.string())),
     // Movie overview/description (optional)
     overview: v.optional(v.string()),
-  }).index("by_movie_id", ["id"]),
+  }).index("by_media_item", ["type", "id"]),
   // Note: by_addedAt index removed temporarily - can't index union types
   // Will add back after migrating all addedAt values to numbers
 
@@ -46,7 +46,7 @@ export default defineSchema({
     genres: v.optional(v.array(v.string())),
     // Movie overview/description (optional)
     overview: v.optional(v.string()),
-  }).index("by_movie_id", ["id"]),
+  }).index("by_media_item", ["type", "id"]),
   // Note: by_addedAt index removed temporarily - can't index union types
   // Will add back after migrating all addedAt values to numbers
 });

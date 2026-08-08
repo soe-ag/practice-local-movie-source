@@ -30,7 +30,7 @@ const topRatedMovies = computed(() => {
   if (data.value) {
     // isShowTopRatedSeries.value = false;
 
-    return convertToDbType(data.value);
+    return convertToDbType(data.value, "movie");
   } else return { movies: [], totalResults: 0 };
 });
 
@@ -56,7 +56,7 @@ const fetchTopRatedSeries = async (page: number) => {
       },
     );
 
-    topRatedSeries.value = convertToDbType(rawTopRatedSeries).movies.filter(
+    topRatedSeries.value = convertToDbType(rawTopRatedSeries, "tv").movies.filter(
       (item) => item.type !== "person",
     );
     topRatedSeriesTotal.value = rawTopRatedSeries.total_results; // for pagination

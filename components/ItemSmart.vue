@@ -69,6 +69,10 @@ const addMovie = async (item: DbMovie, dbName: string) => {
     v-else
     class="flex flex-wrap justify-center sm:justify-start items-start px-2 md:px-8 max-w-[1400px] mx-auto"
   >
-    <ItemDumb :list="props.list" is-list @add-movie="addMovie" />
+    <ItemDumb :list="props.list" is-list @add-movie="addMovie">
+      <template #meta="{ item }">
+        <slot name="meta" :item="item" />
+      </template>
+    </ItemDumb>
   </div>
 </template>

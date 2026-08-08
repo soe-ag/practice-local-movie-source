@@ -32,7 +32,12 @@ const baseMovieArgs = {
 
 const makeCtx = () => {
   const first = vi.fn();
-  const withIndex = vi.fn(() => ({ first }));
+  const queryBuilder = { eq: vi.fn() };
+  queryBuilder.eq.mockReturnValue(queryBuilder);
+  const withIndex = vi.fn((_, configure) => {
+    configure(queryBuilder);
+    return { first };
+  });
   const collect = vi.fn();
   const query = vi.fn((table: string) => {
     if (table === "watchList") {
@@ -52,6 +57,7 @@ const makeCtx = () => {
       },
     },
     first,
+    queryBuilder,
     collect,
     insert,
     del,
@@ -123,7 +129,9 @@ describe("convex/watchList", () => {
     const { ctx, first } = makeCtx();
     first.mockResolvedValue(null);
 
-    await expect(mod.remove.handler(ctx, { id: 100 })).rejects.toThrow(
+    await expect(
+      mod.remove.handler(ctx, { id: 100, type: "movie" }),
+    ).rejects.toThrow(
       "Movie not found in watchlist",
     );
   });
@@ -132,9 +140,19 @@ describe("convex/watchList", () => {
     const { ctx, first, del } = makeCtx();
     first.mockResolvedValue({ _id: "doc_1", id: 42 });
 
-    const result = await mod.remove.handler(ctx, { id: 42 });
+    const result = await mod.remove.handler(ctx, { id: 42, type: "movie" });
 
     expect(del).toHaveBeenCalledWith("doc_1");
     expect(result).toEqual({ success: true });
+  });
+
+  it("checks uniqueness using both media type and TMDB id", async () => {
+    const { ctx, first, queryBuilder } = makeCtx();
+    first.mockResolvedValue(null);
+
+    await mod.add.handler(ctx, { ...baseMovieArgs, id: 42, type: "tv" });
+
+    expect(queryBuilder.eq).toHaveBeenNthCalledWith(1, "type", "tv");
+    expect(queryBuilder.eq).toHaveBeenNthCalledWith(2, "id", 42);
   });
 });

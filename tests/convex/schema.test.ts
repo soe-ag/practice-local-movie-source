@@ -39,12 +39,12 @@ describe("convex/schema", () => {
     expect(schema.favoriteList).toBeTruthy();
   });
 
-  it("defines by_movie_id index on both tables", () => {
+  it("defines compound media identity indexes on both tables", () => {
     expect(schema.watchList.indexes).toEqual([
-      { name: "by_movie_id", fields: ["id"] },
+      { name: "by_media_item", fields: ["type", "id"] },
     ]);
     expect(schema.favoriteList.indexes).toEqual([
-      { name: "by_movie_id", fields: ["id"] },
+      { name: "by_media_item", fields: ["type", "id"] },
     ]);
   });
 

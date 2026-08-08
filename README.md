@@ -12,6 +12,8 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 - Sort lists by date added, release year, or rating
 - Filter lists by type (movie/TV), rating range, and release year range
 - Movie detail drawer with poster, overview, genres, and rating
+- Personalized recommendations from selected Favorites or searched titles
+- Deterministic recommendation ranking, explanations, and saved-list exclusions
 - Dark mode support
 
 ## Pages
@@ -22,6 +24,7 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 | `/TopRated` | Top-rated movies and TV series |
 | `/WatchList` | Personal watch list (sortable, filterable) |
 | `/Favorite` | Favorites list (sortable, filterable) |
+| `/recommendations` | Recommendations from Favorites or searched seed titles |
 | `/login` | Login page |
 
 ## Project Structure
@@ -32,6 +35,7 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 │   ├── TopRated.vue     # Top-rated movies and TV series
 │   ├── WatchList.vue    # Personal watch list
 │   ├── Favorite.vue     # Favorites list
+│   ├── Recommendations.vue # Personalized recommendations
 │   └── login.vue        # Login page
 ├── components/          # Reusable Vue components
 │   ├── ItemSmart.vue    # Smart item wrapper (chooses large/small layout)
@@ -39,7 +43,8 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 │   ├── itemDumb.vue     # Small/compact movie card
 │   ├── ItemSkeleton.vue     # Loading skeleton (small)
 │   ├── ItemSkeletonLarge.vue # Loading skeleton (large)
-│   └── MovieDrawer.vue  # Side drawer with movie details
+│   ├── MovieDrawer.vue  # Side drawer with movie details
+│   └── RecommendationReason.vue # Expandable recommendation evidence
 ├── composables/
 │   └── useMovieDrawer.ts  # Composable for drawer open/close state
 ├── convex/              # Convex backend functions and schema
@@ -49,6 +54,8 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 ├── utils/
 │   ├── type.ts          # Shared TypeScript types
 │   ├── utils.ts         # convertToDbType helper
+│   ├── recommendations.ts # Ranking, filtering, and explanations
+│   ├── recommendationLoader.ts # Concurrent loading and session cache
 │   └── genres.ts        # TMDB genre ID → name mapping
 ├── layouts/
 │   ├── default.vue      # Default layout (nav + MovieDrawer)

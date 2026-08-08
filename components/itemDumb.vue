@@ -8,7 +8,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  (e: "removeFromList", id: number, title: string): void;
+  (e: "removeFromList", id: number, type: string, title: string): void;
   (e: "addMovie", item: DbMovie, dbName: string): void;
 }>();
 
@@ -18,8 +18,8 @@ const { openDrawer } = useMovieDrawer();
 <template>
   <div
     v-for="item in props.list"
-    :key="item.id"
-    class="w-40 h-64 m-2 flex flex-col"
+    :key="`${item.type}:${item.id}`"
+    class="w-40 min-h-64 m-2 flex flex-col"
   >
     <!-- max-md:w-36 max-md:h-58 -->
     <div
@@ -73,12 +73,13 @@ const { openDrawer } = useMovieDrawer();
               class="i-material-symbols-delete-forever-outline-rounded text-gray-300 text-lg cursor-pointer hover:text-red-500 transition-colors hover:animate-pulse"
               :aria-label="`Remove ${item.title} from list`"
               :title="`Remove ${item.title} from list`"
-              @click.stop="emit('removeFromList', item.id, item.title)"
+              @click.stop="emit('removeFromList', item.id, item.type, item.title)"
             />
           </div>
         </div>
       </div>
     </div>
     <div class="text-xs my-1">{{ item.title }} ({{ item.release ?? "-" }})</div>
+    <slot name="meta" :item="item" />
   </div>
 </template>
