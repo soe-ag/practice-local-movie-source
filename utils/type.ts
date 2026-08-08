@@ -53,7 +53,6 @@ export type RecommendationGroup = {
 };
 
 export type RecommendationCandidate = DbMovie & {
-  seedTitles: string[];
   sharedGenres: string[];
   seedMatchCount: number;
   voteCount: number;

@@ -13,7 +13,7 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 - Filter lists by type (movie/TV), rating range, and release year range
 - Movie detail drawer with poster, overview, genres, and rating
 - Personalized recommendations from selected Favorites or searched titles
-- Deterministic recommendation ranking, explanations, and saved-list exclusions
+- Deterministic recommendation ranking and saved-list exclusions
 - Dark mode support
 
 ## Pages
@@ -43,8 +43,7 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 │   ├── itemDumb.vue     # Small/compact movie card
 │   ├── ItemSkeleton.vue     # Loading skeleton (small)
 │   ├── ItemSkeletonLarge.vue # Loading skeleton (large)
-│   ├── MovieDrawer.vue  # Side drawer with movie details
-│   └── RecommendationReason.vue # Expandable recommendation evidence
+│   └── MovieDrawer.vue  # Side drawer with movie details
 ├── composables/
 │   └── useMovieDrawer.ts  # Composable for drawer open/close state
 ├── convex/              # Convex backend functions and schema
@@ -54,7 +53,7 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 ├── utils/
 │   ├── type.ts          # Shared TypeScript types
 │   ├── utils.ts         # convertToDbType helper
-│   ├── recommendations.ts # Ranking, filtering, and explanations
+│   ├── recommendations.ts # Ranking, filtering, and pagination
 │   ├── recommendationLoader.ts # Concurrent loading and session cache
 │   └── genres.ts        # TMDB genre ID → name mapping
 ├── layouts/

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useDebounceFn } from "@vueuse/core";
+import type { PageState } from "primevue/paginator";
 import type {
   DbMovie,
   RawMovieWithTotal,
@@ -9,7 +10,11 @@ import type {
 } from "~/utils/type";
 import { api } from "~/convex/_generated/api";
 import { GENRES } from "~/utils/genres";
-import { buildRecommendations, mediaKey } from "~/utils/recommendations";
+import {
+  buildRecommendations,
+  mediaKey,
+  paginateRecommendations,
+} from "~/utils/recommendations";
 import { createRecommendationLoader } from "~/utils/recommendationLoader";
 
 type RecommendationTab = "forYou" | "findSimilar";
@@ -26,6 +31,8 @@ const isSearchPending = ref(false);
 const filterType = ref("");
 const filterRating = ref("");
 const filterGenre = ref("");
+const resultPage = ref(1);
+const resultFirst = ref(0);
 let searchRequestId = 0;
 
 const groupsByTab = reactive<Record<RecommendationTab, RecommendationGroup[]>>({
@@ -108,7 +115,7 @@ const excludedKeys = computed(() => {
   return keys;
 });
 
-const displayedRecommendations = computed<RecommendationCandidate[]>(() =>
+const rankedRecommendations = computed<RecommendationCandidate[]>(() =>
   buildRecommendations({
     groups: currentGroups.value,
     excludedKeys: excludedKeys.value,
@@ -117,8 +124,15 @@ const displayedRecommendations = computed<RecommendationCandidate[]>(() =>
       rating: filterRating.value,
       genre: filterGenre.value,
     },
-    limit: 20,
   }),
+);
+
+const paginatedRecommendations = computed(() =>
+  paginateRecommendations(rankedRecommendations.value, resultPage.value),
+);
+
+const displayedRecommendations = computed(
+  () => paginatedRecommendations.value.items,
 );
 
 const unfilteredRecommendations = computed<RecommendationCandidate[]>(() =>
@@ -127,15 +141,6 @@ const unfilteredRecommendations = computed<RecommendationCandidate[]>(() =>
     excludedKeys: excludedKeys.value,
   }),
 );
-
-const reasonByKey = computed<Record<string, RecommendationCandidate>>(() =>
-  Object.fromEntries(
-    displayedRecommendations.value.map((item) => [mediaKey(item), item]),
-  ),
-);
-
-const getReason = (item: DbMovie): RecommendationCandidate =>
-  reasonByKey.value[mediaKey(item)]!;
 
 const markCurrentResultsStale = () => {
   errorByTab[activeTab.value] = null;
@@ -244,17 +249,29 @@ const fetchSeedRecommendations = async (
   seed: RecommendationSeed,
 ): Promise<DbMovie[]> => {
   const type = seed.type === "tv" ? "tv" : "movie";
-  const response = await $fetch<RawMovieWithTotal>(
-    `https://api.themoviedb.org/3/${type}/${seed.id}/recommendations`,
-    {
-      params: {
-        api_key: config.public.tmdbApiKey,
-        language: "en-US",
-        page: 1,
-      },
-    },
+  const responses = await Promise.allSettled(
+    [1, 2, 3].map((page) =>
+      $fetch<RawMovieWithTotal>(
+        `https://api.themoviedb.org/3/${type}/${seed.id}/recommendations`,
+        {
+          params: {
+            api_key: config.public.tmdbApiKey,
+            language: "en-US",
+            page,
+          },
+        },
+      ),
+    ),
   );
-  return convertToDbType(response, type).movies;
+  const successfulResponses = responses.flatMap((response) =>
+    response.status === "fulfilled" ? [response.value] : [],
+  );
+  if (!successfulResponses.length) {
+    throw new Error(`Could not load recommendations for ${seed.title}`);
+  }
+  return successfulResponses.flatMap(
+    (response) => convertToDbType(response, type).movies,
+  );
 };
 
 const recommendationLoader = createRecommendationLoader(
@@ -298,6 +315,8 @@ const generateRecommendations = async () => {
     groupsByTab[tab] = groups;
     staleByTab[tab] = false;
     errorByTab[tab] = null;
+    resultPage.value = 1;
+    resultFirst.value = 0;
     if (failedSeeds.length) {
       toast.add({
         severity: "warn",
@@ -314,7 +333,18 @@ const resetFilters = () => {
   filterType.value = "";
   filterRating.value = "";
   filterGenre.value = "";
+  resultPage.value = 1;
+  resultFirst.value = 0;
 };
+
+const handleResultPageChange = (event: PageState) => {
+  resultPage.value = event.page + 1;
+};
+
+watch([filterType, filterRating, filterGenre], () => {
+  resultPage.value = 1;
+  resultFirst.value = 0;
+});
 
 watch(activeTab, () => {
   resetFilters();
@@ -411,13 +441,13 @@ watch(activeTab, () => {
         </div>
         <div
           v-else-if="favorites.length"
-          class="flex gap-3 overflow-x-auto pb-3 recommendation-seed-row"
+          class="recommendation-seed-grid"
         >
           <button
             v-for="movie in favorites"
             :key="mediaKey(movie)"
             type="button"
-            class="relative w-24 flex-shrink-0 text-left cursor-pointer rounded-lg border-2 transition-colors"
+            class="relative w-24 text-left cursor-pointer rounded-lg border-2 transition-colors"
             :class="
               selectedFavoriteKeys.includes(mediaKey(movie))
                 ? 'border-orange-500'
@@ -543,13 +573,15 @@ watch(activeTab, () => {
     </div>
 
     <div v-else-if="currentGroups.length">
-      <ItemSmart :list="displayedRecommendations">
-        <template #meta="{ item }">
-          <RecommendationReason
-            :candidate="getReason(item)"
-          />
-        </template>
-      </ItemSmart>
+      <ItemSmart :list="displayedRecommendations" />
+      <Paginator
+        v-if="paginatedRecommendations.totalResults > 20"
+        v-model:first="resultFirst"
+        :rows="20"
+        :total-records="paginatedRecommendations.totalResults"
+        :pt="{ root: { class: '!bg-transparent' } }"
+        @page="handleResultPageChange"
+      />
       <div
         v-if="!displayedRecommendations.length"
         class="mx-4 text-sm text-gray-500 dark:text-gray-400"
@@ -565,7 +597,16 @@ watch(activeTab, () => {
 </template>
 
 <style scoped>
-.recommendation-seed-row {
+.recommendation-seed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 6rem);
+  grid-auto-rows: 10.25rem;
+  gap: 0.75rem;
+  width: 100%;
+  max-height: 21.5rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-bottom: 0.25rem;
   scrollbar-width: thin;
 }
 </style>

@@ -37,7 +37,6 @@ export const buildRecommendations = ({
         if (!existing.seedKeys.has(sourceKey)) {
           existing.seedKeys.add(sourceKey);
           existing.candidate.seedMatchCount = existing.seedKeys.size;
-          existing.candidate.seedTitles.push(group.seed.title);
         }
         const seedGenres = new Set(group.seed.genres);
         for (const genre of candidate.genres) {
@@ -55,7 +54,6 @@ export const buildRecommendations = ({
       candidates.set(key, {
         candidate: {
           ...candidate,
-          seedTitles: [group.seed.title],
           sharedGenres: candidate.genres.filter((genre) =>
             seedGenres.has(genre),
           ),
@@ -100,9 +98,22 @@ export const buildRecommendations = ({
   return typeof limit === "number" ? result.slice(0, limit) : result;
 };
 
-export const recommendationSummary = (
-  candidate: RecommendationCandidate,
-): string =>
-  candidate.seedMatchCount > 1
-    ? `Matches ${candidate.seedMatchCount} selections`
-    : `Because you liked ${candidate.seedTitles[0]}`;
+export const paginateRecommendations = <T>(
+  candidates: T[],
+  page: number,
+  resultsPerPage = 20,
+  maxPages = 3,
+) => {
+  const limitedCandidates = candidates.slice(0, resultsPerPage * maxPages);
+  const safePage = Math.min(
+    Math.max(page, 1),
+    Math.max(Math.ceil(limitedCandidates.length / resultsPerPage), 1),
+  );
+  const start = (safePage - 1) * resultsPerPage;
+
+  return {
+    items: limitedCandidates.slice(start, start + resultsPerPage),
+    totalResults: limitedCandidates.length,
+    totalPages: Math.ceil(limitedCandidates.length / resultsPerPage),
+  };
+};

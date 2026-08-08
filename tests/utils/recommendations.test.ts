@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { DbMovie, RecommendationSeed } from "~/utils/type";
 import {
   buildRecommendations,
-  recommendationSummary,
+  paginateRecommendations,
 } from "~/utils/recommendations";
 
 const movie = (
@@ -48,7 +48,6 @@ describe("buildRecommendations", () => {
     expect(result[0]).toMatchObject({
       id: 10,
       seedMatchCount: 2,
-      seedTitles: ["Seed One", "Seed Two"],
     });
     expect(result.map((item) => item.id)).toEqual([10, 11, 12]);
   });
@@ -121,23 +120,6 @@ describe("buildRecommendations", () => {
     expect(result.map((item) => item.id)).toEqual([12, 10, 11, 13, 14]);
   });
 
-  it("summarizes single-source and multi-source recommendations", () => {
-    const [single] = buildRecommendations({
-      groups: [{ seed: seed(1, "Seed One"), candidates: [movie(10)] }],
-      excludedKeys: new Set(),
-    });
-    const [multiple] = buildRecommendations({
-      groups: [
-        { seed: seed(1, "Seed One"), candidates: [movie(10)] },
-        { seed: seed(2, "Seed Two"), candidates: [movie(10)] },
-      ],
-      excludedKeys: new Set(),
-    });
-
-    expect(recommendationSummary(single!)).toBe("Because you liked Seed One");
-    expect(recommendationSummary(multiple!)).toBe("Matches 2 selections");
-  });
-
   it("counts distinct seed identities even when their titles are the same", () => {
     const duplicateTitleTvSeed = {
       ...seed(2, "Shared Title"),
@@ -152,6 +134,17 @@ describe("buildRecommendations", () => {
     });
 
     expect(result[0]!.seedMatchCount).toBe(2);
-    expect(result[0]!.seedTitles).toEqual(["Shared Title", "Shared Title"]);
+  });
+
+  it("paginates at 20 results and caps the list at three pages", () => {
+    const candidates = Array.from({ length: 75 }, (_, index) => index + 1);
+
+    const firstPage = paginateRecommendations(candidates, 1);
+    const thirdPage = paginateRecommendations(candidates, 3);
+
+    expect(firstPage.items).toEqual(candidates.slice(0, 20));
+    expect(thirdPage.items).toEqual(candidates.slice(40, 60));
+    expect(thirdPage.totalResults).toBe(60);
+    expect(thirdPage.totalPages).toBe(3);
   });
 });

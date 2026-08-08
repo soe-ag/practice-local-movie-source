@@ -19,7 +19,7 @@ const { openDrawer } = useMovieDrawer();
   <div
     v-for="item in props.list"
     :key="`${item.type}:${item.id}`"
-    class="w-40 min-h-64 m-2 flex flex-col"
+    class="w-40 h-64 m-2 flex flex-col"
   >
     <!-- max-md:w-36 max-md:h-58 -->
     <div
@@ -80,6 +80,5 @@ const { openDrawer } = useMovieDrawer();
       </div>
     </div>
     <div class="text-xs my-1">{{ item.title }} ({{ item.release ?? "-" }})</div>
-    <slot name="meta" :item="item" />
   </div>
 </template>
