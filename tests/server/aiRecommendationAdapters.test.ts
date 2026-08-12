@@ -5,17 +5,19 @@ import {
   parseOpenRouterCandidates,
 } from "~/server/utils/aiRecommendationAdapters";
 import {
-  AI_RECOMMENDATION_MODEL,
+  AI_RECOMMENDATION_MODELS,
   AI_RECOMMENDATION_TIMEOUT_MS,
 } from "~/server/utils/aiRecommendationService";
 
 describe("AI recommendation adapters", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("pins Nemotron Lightning and limits AI waiting to ten seconds", () => {
-    expect(AI_RECOMMENDATION_MODEL).toBe(
+  it("orders Ultra, Lightning, and the free router with ten seconds each", () => {
+    expect(AI_RECOMMENDATION_MODELS).toEqual([
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
       "nvidia/nemotron-3.5-lightning:free",
-    );
+      "openrouter/free",
+    ]);
     expect(AI_RECOMMENDATION_TIMEOUT_MS).toBe(10_000);
   });
 
@@ -64,7 +66,7 @@ describe("AI recommendation adapters", () => {
   it("sends the pinned model with a ten-second transport timeout", async () => {
     const fetcher = vi.fn(
       async (_url: string, _options: Record<string, unknown>) => ({
-        model: AI_RECOMMENDATION_MODEL,
+        model: AI_RECOMMENDATION_MODELS[0],
         choices: [
           {
             message: {
@@ -77,24 +79,27 @@ describe("AI recommendation adapters", () => {
     );
     vi.stubGlobal("$fetch", fetcher);
 
-    await createOpenRouterAdapter("test-key").generateCandidates({
-      id: 1,
-      type: "movie",
-      title: "Seed",
-      release: 2020,
-      overview: "Overview",
-      genres: ["Drama"],
-      keywords: [],
-      creators: [],
-      cast: [],
-    });
+    await createOpenRouterAdapter("test-key").generateCandidates(
+      {
+        id: 1,
+        type: "movie",
+        title: "Seed",
+        release: 2020,
+        overview: "Overview",
+        genres: ["Drama"],
+        keywords: [],
+        creators: [],
+        cast: [],
+      },
+      AI_RECOMMENDATION_MODELS[0],
+    );
 
     expect(fetcher).toHaveBeenCalledWith(
       "https://openrouter.ai/api/v1/chat/completions",
       expect.objectContaining({
         timeout: 10_000,
         body: expect.objectContaining({
-          model: "nvidia/nemotron-3.5-lightning:free",
+          model: "nvidia/nemotron-3-ultra-550b-a55b:free",
           reasoning: { effort: "none" },
         }),
       }),

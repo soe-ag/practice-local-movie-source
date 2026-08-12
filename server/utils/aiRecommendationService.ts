@@ -4,8 +4,11 @@ import type {
   MediaType,
 } from "~/utils/type";
 
-export const AI_RECOMMENDATION_MODEL =
-  "nvidia/nemotron-3.5-lightning:free";
+export const AI_RECOMMENDATION_MODELS = [
+  "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "nvidia/nemotron-3.5-lightning:free",
+  "openrouter/free",
+] as const;
 export const AI_RECOMMENDATION_TIMEOUT_MS = 10_000;
 export const AI_RECOMMENDATION_PROMPT_VERSION = "v1";
 
@@ -38,7 +41,7 @@ type Limiter = {
 
 type Dependencies = {
   loadSeed(input: { id: number; type: MediaType }): Promise<AiSeedDetails>;
-  generateCandidates(seed: AiSeedDetails): Promise<{
+  generateCandidates(seed: AiSeedDetails, model: string): Promise<{
     model: string;
     candidates: AiCandidate[];
   }>;
@@ -55,7 +58,7 @@ const cacheKey = ({ id, type }: { id: number; type: MediaType }) =>
   [
     "ai-recommendations",
     AI_RECOMMENDATION_PROMPT_VERSION,
-    AI_RECOMMENDATION_MODEL,
+    AI_RECOMMENDATION_MODELS.join(","),
     type,
     id,
   ].join(":");
@@ -73,31 +76,38 @@ export const createAiRecommendationService = (dependencies: Dependencies) => ({
       const allowed = await dependencies.limiter.consume(clientKey);
       if (!allowed) throw new Error("AI recommendation limit reached");
       const seed = await dependencies.loadSeed(input);
-      const generated = await dependencies.generateCandidates(seed);
-      const seen = new Set<string>([`${input.type}:${input.id}`]);
-      const resolved = await Promise.all(
-        generated.candidates.slice(0, 12).map(async (candidate) => ({
-          movie: await dependencies.resolveCandidate(candidate, input.type),
-          reason: candidate.reason,
-        })),
-      );
-      const recommendations = resolved
-        .flatMap(({ movie, reason }) => {
-          if (!movie || movie.type !== input.type) return [];
-          const movieKey = `${movie.type}:${movie.id}`;
-          if (seen.has(movieKey)) return [];
-          seen.add(movieKey);
-          return [{ movie, reason: reason.trim().slice(0, 240) }];
-        })
-        .slice(0, 10);
-      if (!recommendations.length) throw new Error("AI returned no valid titles");
-      const response: AiRecommendationResponse = {
-        source: "ai",
-        model: generated.model,
-        recommendations,
-      };
-      await dependencies.cache.set(key, response);
-      return response;
+      for (const model of AI_RECOMMENDATION_MODELS) {
+        try {
+          const generated = await dependencies.generateCandidates(seed, model);
+          const seen = new Set<string>([`${input.type}:${input.id}`]);
+          const resolved = await Promise.all(
+            generated.candidates.slice(0, 12).map(async (candidate) => ({
+              movie: await dependencies.resolveCandidate(candidate, input.type),
+              reason: candidate.reason,
+            })),
+          );
+          const recommendations = resolved
+            .flatMap(({ movie, reason }) => {
+              if (!movie || movie.type !== input.type) return [];
+              const movieKey = `${movie.type}:${movie.id}`;
+              if (seen.has(movieKey)) return [];
+              seen.add(movieKey);
+              return [{ movie, reason: reason.trim().slice(0, 240) }];
+            })
+            .slice(0, 10);
+          if (!recommendations.length) continue;
+          const response: AiRecommendationResponse = {
+            source: "ai",
+            model: generated.model,
+            recommendations,
+          };
+          await dependencies.cache.set(key, response);
+          return response;
+        } catch {
+          continue;
+        }
+      }
+      throw new Error("All AI recommendation models failed");
     } catch {
       const fallback = await dependencies.loadFallback(input);
       return {

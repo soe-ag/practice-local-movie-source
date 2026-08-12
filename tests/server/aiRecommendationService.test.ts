@@ -17,6 +17,103 @@ const movie = (id: number, title: string): DbMovie => ({
 });
 
 describe("AI recommendation service", () => {
+  it("tries Ultra, Lightning, then any free model before TMDB fallback", async () => {
+    const generatedModels: string[] = [];
+    const service = createAiRecommendationService({
+      loadSeed: vi.fn(async () => ({
+        id: 99,
+        type: "movie" as const,
+        title: "Seed",
+        release: 2024,
+        overview: "Overview",
+        genres: [],
+        keywords: [],
+        creators: [],
+        cast: [],
+      })),
+      generateCandidates: vi.fn(async (_seed, model) => {
+        generatedModels.push(model);
+        if (model !== "openrouter/free") throw new Error("model unavailable");
+        return {
+          model: "free/router-choice",
+          candidates: [
+            { title: "Free Match", year: 2020, reason: "A strong match." },
+          ],
+        };
+      }),
+      resolveCandidate: vi.fn(async () => movie(5, "Free Match")),
+      loadFallback: vi.fn(async () => []),
+      cache: {
+        get: vi.fn(async () => null),
+        set: vi.fn(async () => undefined),
+      },
+      limiter: { consume: vi.fn(async () => true) },
+    });
+
+    const result = await service.recommend(
+      { id: 99, type: "movie" },
+      "client",
+    );
+
+    expect(generatedModels).toEqual([
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "nvidia/nemotron-3.5-lightning:free",
+      "openrouter/free",
+    ]);
+    expect(result).toMatchObject({ source: "ai", model: "free/router-choice" });
+  });
+
+  it("tries the next model when a model returns no TMDB-verifiable titles", async () => {
+    const generatedModels: string[] = [];
+    const service = createAiRecommendationService({
+      loadSeed: vi.fn(async () => ({
+        id: 99,
+        type: "movie" as const,
+        title: "Seed",
+        release: 2024,
+        overview: "Overview",
+        genres: [],
+        keywords: [],
+        creators: [],
+        cast: [],
+      })),
+      generateCandidates: vi.fn(async (_seed, model) => {
+        generatedModels.push(model);
+        return {
+          model,
+          candidates: [
+            { title: model, year: 2020, reason: "A strong match." },
+          ],
+        };
+      }),
+      resolveCandidate: vi.fn(async (candidate) =>
+        candidate.title === "nvidia/nemotron-3.5-lightning:free"
+          ? movie(6, "Lightning Match")
+          : null,
+      ),
+      loadFallback: vi.fn(async () => []),
+      cache: {
+        get: vi.fn(async () => null),
+        set: vi.fn(async () => undefined),
+      },
+      limiter: { consume: vi.fn(async () => true) },
+    });
+
+    const result = await service.recommend(
+      { id: 99, type: "movie" },
+      "client",
+    );
+
+    expect(generatedModels).toEqual([
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "nvidia/nemotron-3.5-lightning:free",
+    ]);
+    expect(result).toMatchObject({
+      source: "ai",
+      model: "nvidia/nemotron-3.5-lightning:free",
+    });
+  });
+
   it("returns verified movies in AI order with concise match reasons", async () => {
     const second = movie(2, "Second Choice");
     const first = movie(1, "First Choice");
@@ -95,6 +192,12 @@ describe("AI recommendation service", () => {
 
   it("falls back to TMDB when the AI request times out", async () => {
     const fallbackMovie = movie(8, "Timeout Fallback");
+    const generateCandidates = vi.fn(
+      async (_seed: unknown, _model: string): Promise<never> => {
+        throw new Error("Timeout after 10000ms");
+      },
+    );
+    const loadFallback = vi.fn(async () => [fallbackMovie]);
     const service = createAiRecommendationService({
       loadSeed: vi.fn(async () => ({
         id: 99,
@@ -107,11 +210,9 @@ describe("AI recommendation service", () => {
         creators: [],
         cast: [],
       })),
-      generateCandidates: vi.fn(async () => {
-        throw new Error("Timeout after 10000ms");
-      }),
+      generateCandidates,
       resolveCandidate: vi.fn(),
-      loadFallback: vi.fn(async () => [fallbackMovie]),
+      loadFallback,
       cache: {
         get: vi.fn(async () => null),
         set: vi.fn(async () => undefined),
@@ -125,6 +226,12 @@ describe("AI recommendation service", () => {
       source: "tmdb",
       recommendations: [{ movie: fallbackMovie }],
     });
+    expect(generateCandidates.mock.calls.map((call) => call[1])).toEqual([
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
+      "nvidia/nemotron-3.5-lightning:free",
+      "openrouter/free",
+    ]);
+    expect(loadFallback).toHaveBeenCalledOnce();
   });
 
   it("removes duplicate and seed results and returns at most ten matches", async () => {
