@@ -32,7 +32,7 @@ export default defineNuxtConfig({
 
   // Convex configuration - uncomment after setting CONVEX_URL in .env.local
   // To get your CONVEX_URL:
-  // 1. Run: npx convex dev
+  // 1. Run: pnpm exec convex dev
   // 2. Copy the deployment URL from the output
   // 3. Create .env.local file with: CONVEX_URL=https://your-deployment.convex.cloud
   convex: {

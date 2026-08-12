@@ -22,25 +22,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: package.json # reads "engines.node" field
-          cache: npm
+      - name: Enable Corepack
+        run: corepack enable
+
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: npm run lint
+        run: pnpm lint
 
       - name: Test
-        run: npm test
+        run: pnpm test
 
       - name: Type check
-        run: npm run tsc
+        run: pnpm tsc
         env:
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
           CONVEX_URL: ${{ secrets.CONVEX_URL }}
 
       - name: Build
-        run: npm run build
+        run: pnpm build
         env:
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
           CONVEX_URL: ${{ secrets.CONVEX_URL }}

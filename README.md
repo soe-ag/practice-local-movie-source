@@ -89,20 +89,20 @@ TMDB_API_KEY=your_tmdb_api_key
 CONVEX_URL=your_convex_deployment_url
 ```
 
-To get your `CONVEX_URL`, run `npx convex dev` and copy the deployment URL from the output.
+To get your `CONVEX_URL`, run `pnpm exec convex dev` and copy the deployment URL from the output.
 
 ## Setup
 
 Install dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 Initialize the Convex backend (creates `watchList` and `favoriteList` tables):
 
 ```bash
-npx convex dev
+pnpm exec convex dev
 ```
 
 ## Development Server
@@ -110,7 +110,7 @@ npx convex dev
 Start the development server on `http://localhost:3000`:
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 ## Testing
@@ -118,25 +118,25 @@ npm run dev
 Run the test suite:
 
 ```bash
-npm test
+pnpm test
 ```
 
 Run tests in watch mode:
 
 ```bash
-npm run test:watch
+pnpm test:watch
 ```
 
 Run TypeScript type checking:
 
 ```bash
-npm run tsc
+pnpm tsc
 ```
 
 Run the linter:
 
 ```bash
-npm run lint
+pnpm lint
 ```
 
 ## Production
@@ -144,13 +144,13 @@ npm run lint
 Build the application for production:
 
 ```bash
-npm run build
+pnpm build
 ```
 
 Preview the production build locally:
 
 ```bash
-npm run preview
+pnpm preview
 ```
 
 Check out the [Nuxt deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
