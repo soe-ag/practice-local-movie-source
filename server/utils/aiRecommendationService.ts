@@ -4,7 +4,9 @@ import type {
   MediaType,
 } from "~/utils/type";
 
-export const AI_RECOMMENDATION_MODEL = "openrouter/free";
+export const AI_RECOMMENDATION_MODEL =
+  "nvidia/nemotron-3.5-lightning:free";
+export const AI_RECOMMENDATION_TIMEOUT_MS = 10_000;
 export const AI_RECOMMENDATION_PROMPT_VERSION = "v1";
 
 export type AiSeedDetails = {

@@ -2,6 +2,7 @@ import { convertToDbType } from "~/utils/utils";
 import type { RawMovieWithTotal, MediaType } from "~/utils/type";
 import {
   AI_RECOMMENDATION_MODEL,
+  AI_RECOMMENDATION_TIMEOUT_MS,
   type AiCandidate,
   type AiSeedDetails,
 } from "~/server/utils/aiRecommendationService";
@@ -48,10 +49,25 @@ character dynamics, setting, filmmaking style, creators, and audience appeal. Do
 choose titles merely because they share a genre. Return only real, widely identifiable
 titles of the same media type. Give a single concise sentence explaining each match.
 Do not include the selected title.
+
+Return only a JSON object with this exact shape and no markdown:
+{"recommendations":[{"title":"Real title","year":2000,"reason":"One concise sentence."}]}
+The recommendations array must contain exactly 12 items. Use null for an unknown year.
 `.trim();
 
 export const parseOpenRouterCandidates = (content: string): AiCandidate[] => {
-  const parsed = JSON.parse(content) as { recommendations?: unknown };
+  const withoutFence = content
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "");
+  const firstBrace = withoutFence.indexOf("{");
+  const lastBrace = withoutFence.lastIndexOf("}");
+  if (firstBrace === -1 || lastBrace < firstBrace) {
+    throw new Error("OpenRouter returned invalid JSON");
+  }
+  const parsed = JSON.parse(
+    withoutFence.slice(firstBrace, lastBrace + 1),
+  ) as { recommendations?: unknown };
   if (!Array.isArray(parsed.recommendations)) {
     throw new Error("OpenRouter returned an invalid recommendation list");
   }
@@ -141,6 +157,7 @@ export const createOpenRouterAdapter = (apiKey: string) => ({
     if (!apiKey) throw new Error("OPENROUTER_API_KEY is not configured");
     const response = await $fetch<OpenRouterResponse>(OPENROUTER_URL, {
       method: "POST",
+      timeout: AI_RECOMMENDATION_TIMEOUT_MS,
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
@@ -151,40 +168,12 @@ export const createOpenRouterAdapter = (apiKey: string) => ({
           {
             role: "system",
             content:
-              "You are a careful film and television curator. Follow the supplied JSON schema exactly.",
+              "You are a careful film and television curator. Return only the requested JSON object.",
           },
           { role: "user", content: buildRecommendationPrompt(seed) },
         ],
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "tailored_recommendations",
-            strict: true,
-            schema: {
-              type: "object",
-              properties: {
-                recommendations: {
-                  type: "array",
-                  minItems: 12,
-                  maxItems: 12,
-                  items: {
-                    type: "object",
-                    properties: {
-                      title: { type: "string" },
-                      year: { type: ["integer", "null"] },
-                      reason: { type: "string" },
-                    },
-                    required: ["title", "year", "reason"],
-                    additionalProperties: false,
-                  },
-                },
-              },
-              required: ["recommendations"],
-              additionalProperties: false,
-            },
-          },
-        },
-        provider: { require_parameters: true },
+        reasoning: { effort: "none" },
+        max_tokens: 1_200,
         temperature: 0.4,
       },
     });

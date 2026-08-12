@@ -93,6 +93,40 @@ describe("AI recommendation service", () => {
     });
   });
 
+  it("falls back to TMDB when the AI request times out", async () => {
+    const fallbackMovie = movie(8, "Timeout Fallback");
+    const service = createAiRecommendationService({
+      loadSeed: vi.fn(async () => ({
+        id: 99,
+        type: "movie" as const,
+        title: "Seed",
+        release: 2024,
+        overview: "Overview",
+        genres: [],
+        keywords: [],
+        creators: [],
+        cast: [],
+      })),
+      generateCandidates: vi.fn(async () => {
+        throw new Error("Timeout after 10000ms");
+      }),
+      resolveCandidate: vi.fn(),
+      loadFallback: vi.fn(async () => [fallbackMovie]),
+      cache: {
+        get: vi.fn(async () => null),
+        set: vi.fn(async () => undefined),
+      },
+      limiter: { consume: vi.fn(async () => true) },
+    });
+
+    await expect(
+      service.recommend({ id: 99, type: "movie" }, "client"),
+    ).resolves.toMatchObject({
+      source: "tmdb",
+      recommendations: [{ movie: fallbackMovie }],
+    });
+  });
+
   it("removes duplicate and seed results and returns at most ten matches", async () => {
     const seedMovie = movie(99, "Seed");
     const candidates = Array.from({ length: 13 }, (_, index) => ({
