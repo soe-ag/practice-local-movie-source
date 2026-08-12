@@ -31,6 +31,7 @@ export type DbMovie = {
   overview?: string;
   voteCount?: number;
   popularity?: number;
+  recommendationReason?: string;
 };
 
 export type DbMovieWithTotal = {
@@ -63,4 +64,16 @@ export type RecommendationFilters = {
   type?: string;
   rating?: string;
   genre?: string;
+};
+
+export type AiRecommendationItem = {
+  movie: DbMovie;
+  reason?: string;
+};
+
+export type AiRecommendationResponse = {
+  source: "ai" | "tmdb";
+  model?: string;
+  recommendations: AiRecommendationItem[];
+  notice?: string;
 };

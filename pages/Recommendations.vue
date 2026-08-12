@@ -2,7 +2,9 @@
 import { useDebounceFn } from "@vueuse/core";
 import type { PageState } from "primevue/paginator";
 import type {
+  AiRecommendationResponse,
   DbMovie,
+  RawMovie,
   RawMovieWithTotal,
   RecommendationCandidate,
   RecommendationGroup,
@@ -12,15 +14,18 @@ import { api } from "~/convex/_generated/api";
 import { GENRES } from "~/utils/genres";
 import {
   buildRecommendations,
+  matchesRecommendationFilters,
   mediaKey,
   paginateRecommendations,
 } from "~/utils/recommendations";
 import { createRecommendationLoader } from "~/utils/recommendationLoader";
+import { parseAiRecommendationRoute } from "~/utils/aiRecommendationNavigation";
 
 type RecommendationTab = "forYou" | "findSimilar";
 
 const config = useRuntimeConfig();
 const toast = useToast();
+const route = useRoute();
 
 const activeTab = ref<RecommendationTab>("forYou");
 const selectedFavoriteKeys = ref<string[]>([]);
@@ -34,6 +39,7 @@ const filterGenre = ref("");
 const resultPage = ref(1);
 const resultFirst = ref(0);
 let searchRequestId = 0;
+let routeSeedRequestId = 0;
 
 const groupsByTab = reactive<Record<RecommendationTab, RecommendationGroup[]>>({
   forYou: [],
@@ -55,6 +61,7 @@ const requestIdByTab = reactive<Record<RecommendationTab, number>>({
   forYou: 0,
   findSimilar: 0,
 });
+const aiResponse = ref<AiRecommendationResponse | null>(null);
 
 const { data: favoriteListData } = useConvexQuery(api.favoriteList.get);
 const { data: watchListData } = useConvexQuery(api.watchList.get);
@@ -115,8 +122,27 @@ const excludedKeys = computed(() => {
   return keys;
 });
 
-const rankedRecommendations = computed<RecommendationCandidate[]>(() =>
-  buildRecommendations({
+const rankedRecommendations = computed<RecommendationCandidate[]>(() => {
+  if (activeTab.value === "findSimilar" && aiResponse.value) {
+    return aiResponse.value.recommendations
+      .map(({ movie, reason }) => ({
+        ...movie,
+        recommendationReason: reason,
+        sharedGenres: [],
+        seedMatchCount: 1,
+        voteCount: movie.voteCount ?? 0,
+        popularity: movie.popularity ?? 0,
+      }))
+      .filter((candidate) => !excludedKeys.value.has(mediaKey(candidate)))
+      .filter((candidate) =>
+        matchesRecommendationFilters(candidate, {
+          type: filterType.value,
+          rating: filterRating.value,
+          genre: filterGenre.value,
+        }),
+      );
+  }
+  return buildRecommendations({
     groups: currentGroups.value,
     excludedKeys: excludedKeys.value,
     filters: {
@@ -124,8 +150,8 @@ const rankedRecommendations = computed<RecommendationCandidate[]>(() =>
       rating: filterRating.value,
       genre: filterGenre.value,
     },
-  }),
-);
+  });
+});
 
 const paginatedRecommendations = computed(() =>
   paginateRecommendations(rankedRecommendations.value, resultPage.value),
@@ -136,10 +162,21 @@ const displayedRecommendations = computed(
 );
 
 const unfilteredRecommendations = computed<RecommendationCandidate[]>(() =>
-  buildRecommendations({
-    groups: currentGroups.value,
-    excludedKeys: excludedKeys.value,
-  }),
+  activeTab.value === "findSimilar" && aiResponse.value
+    ? aiResponse.value.recommendations
+        .map(({ movie, reason }) => ({
+          ...movie,
+          recommendationReason: reason,
+          sharedGenres: [],
+          seedMatchCount: 1,
+          voteCount: movie.voteCount ?? 0,
+          popularity: movie.popularity ?? 0,
+        }))
+        .filter((candidate) => !excludedKeys.value.has(mediaKey(candidate)))
+    : buildRecommendations({
+        groups: currentGroups.value,
+        excludedKeys: excludedKeys.value,
+      }),
 );
 
 const markCurrentResultsStale = () => {
@@ -176,11 +213,7 @@ const toggleFavoriteSeed = (movie: DbMovie) => {
 const addManualSeed = (movie: DbMovie) => {
   const key = mediaKey(movie);
   if (selectedManualSeeds.value.some((seed) => mediaKey(seed) === key)) return;
-  if (selectedManualSeeds.value.length >= 3) {
-    showLimitToast("Choose up to three titles.");
-    return;
-  }
-  selectedManualSeeds.value = [...selectedManualSeeds.value, movie];
+  selectedManualSeeds.value = [movie];
   searchQuery.value = "";
   searchResults.value = [];
   markCurrentResultsStale();
@@ -288,6 +321,37 @@ const generateRecommendations = async () => {
   generatingByTab[tab] = true;
   errorByTab[tab] = null;
 
+  if (tab === "findSimilar") {
+    try {
+      const seed = seeds[0]!;
+      const response = await $fetch<AiRecommendationResponse>(
+        "/api/recommendations/ai",
+        { method: "POST", body: { id: seed.id, type: seed.type } },
+      );
+      if (
+        currentRequestId !== requestIdByTab[tab] ||
+        signature !== seedSignature(selectedManualSeeds.value)
+      ) return;
+      aiResponse.value = response;
+      groupsByTab[tab] = [
+        {
+          seed,
+          candidates: response.recommendations.map((item) => item.movie),
+        },
+      ];
+      staleByTab[tab] = false;
+      resultPage.value = 1;
+      resultFirst.value = 0;
+    } catch {
+      aiResponse.value = null;
+      groupsByTab[tab] = [];
+      errorByTab[tab] = "Could not load tailored recommendations.";
+    } finally {
+      generatingByTab[tab] = false;
+    }
+    return;
+  }
+
   const { groups, failedSeeds } = await recommendationLoader.load(seeds);
 
   if (
@@ -350,6 +414,40 @@ watch(activeTab, () => {
   resetFilters();
   searchResults.value = [];
 });
+
+const loadRouteSeed = async () => {
+  const currentRequestId = ++routeSeedRequestId;
+  const seed = parseAiRecommendationRoute(route.query);
+  if (!seed) return;
+  const { id, type } = seed;
+  activeTab.value = "findSimilar";
+  try {
+    const item = await $fetch<RawMovie>(
+      `https://api.themoviedb.org/3/${type}/${id}`,
+      { params: { api_key: config.public.tmdbApiKey, language: "en-US" } },
+    );
+    if (currentRequestId !== routeSeedRequestId) return;
+    selectedManualSeeds.value = convertToDbType(
+      { total_results: 1, results: [{ ...item, media_type: type }] },
+      type,
+    ).movies;
+    markCurrentResultsStale();
+  } catch {
+    if (currentRequestId !== routeSeedRequestId) return;
+    toast.add({
+      severity: "error",
+      summary: "Title unavailable",
+      detail: "Could not load the title for AI recommendations.",
+      life: 4000,
+    });
+  }
+};
+
+watch(
+  () => [route.query.tab, route.query.id, route.query.type],
+  loadRouteSeed,
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -478,7 +576,7 @@ watch(activeTab, () => {
       <template v-else>
         <div class="font-semibold mb-1">Choose titles you like</div>
         <div class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-          Search and select up to three movies or TV series.
+          Search and select one movie or TV series.
         </div>
         <div class="relative max-w-md">
           <InputText
@@ -549,6 +647,13 @@ watch(activeTab, () => {
     </section>
 
     <div
+      v-if="activeTab === 'findSimilar' && aiResponse?.notice"
+      class="mx-4 mb-4 p-3 text-sm rounded border border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-300"
+    >
+      {{ aiResponse.notice }}
+    </div>
+
+    <div
       v-if="errorByTab[activeTab]"
       class="mx-4 mb-4 p-4 bg-red-500/20 border border-red-500 rounded"
     >
@@ -589,7 +694,7 @@ watch(activeTab, () => {
         {{
           unfilteredRecommendations.length
             ? "No recommendations match the selected filters."
-            : "TMDB returned no new recommendations for these selections."
+            : "No new recommendations were found for this selection."
         }}
       </div>
     </div>

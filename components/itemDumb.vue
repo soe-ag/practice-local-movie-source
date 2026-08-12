@@ -19,7 +19,7 @@ const { openDrawer } = useMovieDrawer();
   <div
     v-for="item in props.list"
     :key="`${item.type}:${item.id}`"
-    class="w-40 h-64 m-2 flex flex-col"
+    class="w-40 min-h-64 m-2 flex flex-col"
   >
     <!-- max-md:w-36 max-md:h-58 -->
     <div
@@ -80,5 +80,12 @@ const { openDrawer } = useMovieDrawer();
       </div>
     </div>
     <div class="text-xs my-1">{{ item.title }} ({{ item.release ?? "-" }})</div>
+    <div
+      v-if="item.recommendationReason"
+      class="text-[11px] text-gray-600 dark:text-gray-300 line-clamp-3"
+    >
+      <span class="font-semibold">Why it matches:</span>
+      {{ item.recommendationReason }}
+    </div>
   </div>
 </template>

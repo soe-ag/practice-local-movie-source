@@ -13,6 +13,7 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 - Filter lists by type (movie/TV), rating range, and release year range
 - Movie detail drawer with poster, overview, genres, and rating
 - Personalized recommendations from selected Favorites or searched titles
+- AI-tailored same-type recommendations with verified TMDB titles and match reasons
 - Deterministic recommendation ranking and saved-list exclusions
 - Dark mode support
 
@@ -86,6 +87,7 @@ Create a `.env` file in the project root:
 
 ```env
 TMDB_API_KEY=your_tmdb_api_key
+OPENROUTER_API_KEY=your_openrouter_api_key
 CONVEX_URL=your_convex_deployment_url
 ```
 

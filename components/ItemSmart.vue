@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import type { DbMovie } from "~/utils/type";
+import type { DbMovie, MediaType } from "~/utils/type";
 import { useToast } from "primevue/usetoast";
 import { api } from "~/convex/_generated/api";
+import { buildAiRecommendationRoute } from "~/utils/aiRecommendationNavigation";
 
 const props = withDefaults(
   defineProps<{
@@ -12,6 +13,8 @@ const props = withDefaults(
 );
 
 const toast = useToast();
+const router = useRouter();
+const pendingAiSeed = ref<{ id: number; type: MediaType } | null>(null);
 const { mutate: addToWatchList } = useConvexMutation(api.watchList.add);
 const { mutate: addToFavoriteList } = useConvexMutation(api.favoriteList.add);
 
@@ -49,7 +52,18 @@ const addMovie = async (item: DbMovie, dbName: string) => {
       await addToFavoriteList(movieData);
     }
 
-    showToast("success", item.title, dbName);
+    pendingAiSeed.value = null;
+    if (item.type === "movie" || item.type === "tv") {
+      pendingAiSeed.value = { id: item.id, type: item.type };
+    }
+    toast.removeGroup("add-action");
+    toast.add({
+      severity: "success",
+      summary: "Added",
+      detail: `Movie (${item.title}) is added to ${dbName}.`,
+      group: "add-action",
+      life: 8000,
+    });
   } catch (error) {
     const errorMessage =
       error instanceof Error
@@ -59,9 +73,31 @@ const addMovie = async (item: DbMovie, dbName: string) => {
     console.error(error);
   }
 };
+
+const findAiMatches = () => {
+  const id = pendingAiSeed.value?.id;
+  const type = pendingAiSeed.value?.type;
+  if (!id || !type) return;
+  toast.removeGroup("add-action");
+  router.push(buildAiRecommendationRoute({ id, type }));
+};
 </script>
 
 <template>
+  <Toast group="add-action" position="bottom-right">
+    <template #message="slotProps">
+      <div class="flex flex-col gap-2">
+        <span class="font-semibold">{{ slotProps.message.summary }}</span>
+        <span class="text-sm">{{ slotProps.message.detail }}</span>
+        <Button
+          label="Find AI matches"
+          size="small"
+          class="self-start"
+          @click="findAiMatches"
+        />
+      </div>
+    </template>
+  </Toast>
   <div v-if="props.isLarge" class="w-full max-w-[1920px] mx-auto mt-4 mb-0">
     <ItemLarge :list="props.list" is-list @add-movie="addMovie" />
   </div>

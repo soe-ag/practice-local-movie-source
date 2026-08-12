@@ -15,6 +15,25 @@ type BuildRecommendationsOptions = {
   limit?: number;
 };
 
+export const matchesRecommendationFilters = (
+  candidate: Pick<DbMovie, "type" | "rating" | "genres">,
+  filters: RecommendationFilters = {},
+) => {
+  if (filters.type && candidate.type !== filters.type) return false;
+  if (filters.rating === "lt7" && candidate.rating >= 7) return false;
+  if (
+    filters.rating === "7-7.5" &&
+    (candidate.rating < 7 || candidate.rating >= 7.5)
+  ) return false;
+  if (
+    filters.rating === "7.5-8" &&
+    (candidate.rating < 7.5 || candidate.rating > 8)
+  ) return false;
+  if (filters.rating === "gt8" && candidate.rating <= 8) return false;
+  if (filters.genre && !candidate.genres.includes(filters.genre)) return false;
+  return true;
+};
+
 export const buildRecommendations = ({
   groups,
   excludedKeys,
@@ -68,23 +87,7 @@ export const buildRecommendations = ({
 
   const result = [...candidates.values()]
     .map(({ candidate }) => candidate)
-    .filter((candidate) => !filters.type || candidate.type === filters.type)
-    .filter((candidate) => {
-      if (!filters.rating) return true;
-      if (filters.rating === "lt7") return candidate.rating < 7;
-      if (filters.rating === "7-7.5") {
-        return candidate.rating >= 7 && candidate.rating < 7.5;
-      }
-      if (filters.rating === "7.5-8") {
-        return candidate.rating >= 7.5 && candidate.rating <= 8;
-      }
-      if (filters.rating === "gt8") return candidate.rating > 8;
-      return true;
-    })
-    .filter(
-      (candidate) =>
-        !filters.genre || candidate.genres.includes(filters.genre),
-    )
+    .filter((candidate) => matchesRecommendationFilters(candidate, filters))
     .sort(
       (a, b) =>
         b.seedMatchCount - a.seedMatchCount ||
