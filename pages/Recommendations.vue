@@ -17,8 +17,8 @@ import {
   matchesRecommendationFilters,
   mediaKey,
   paginateRecommendations,
+  toggleSingleSelection,
 } from "~/utils/recommendations";
-import { createRecommendationLoader } from "~/utils/recommendationLoader";
 import { parseAiRecommendationRoute } from "~/utils/aiRecommendationNavigation";
 
 type RecommendationTab = "forYou" | "findSimilar";
@@ -61,7 +61,12 @@ const requestIdByTab = reactive<Record<RecommendationTab, number>>({
   forYou: 0,
   findSimilar: 0,
 });
-const aiResponse = ref<AiRecommendationResponse | null>(null);
+const aiResponseByTab = reactive<
+  Record<RecommendationTab, AiRecommendationResponse | null>
+>({
+  forYou: null,
+  findSimilar: null,
+});
 
 const { data: favoriteListData } = useConvexQuery(api.favoriteList.get);
 const { data: watchListData } = useConvexQuery(api.watchList.get);
@@ -123,8 +128,9 @@ const excludedKeys = computed(() => {
 });
 
 const rankedRecommendations = computed<RecommendationCandidate[]>(() => {
-  if (activeTab.value === "findSimilar" && aiResponse.value) {
-    return aiResponse.value.recommendations
+  const aiResponse = aiResponseByTab[activeTab.value];
+  if (aiResponse) {
+    return aiResponse.recommendations
       .map(({ movie, reason }) => ({
         ...movie,
         recommendationReason: reason,
@@ -162,8 +168,8 @@ const displayedRecommendations = computed(
 );
 
 const unfilteredRecommendations = computed<RecommendationCandidate[]>(() =>
-  activeTab.value === "findSimilar" && aiResponse.value
-    ? aiResponse.value.recommendations
+  aiResponseByTab[activeTab.value]
+    ? aiResponseByTab[activeTab.value]!.recommendations
         .map(({ movie, reason }) => ({
           ...movie,
           recommendationReason: reason,
@@ -184,29 +190,12 @@ const markCurrentResultsStale = () => {
   if (groupsByTab[activeTab.value].length) staleByTab[activeTab.value] = true;
 };
 
-const showLimitToast = (message: string) => {
-  toast.add({
-    severity: "warn",
-    summary: "Selection limit",
-    detail: message,
-    life: 3000,
-  });
-};
-
 const toggleFavoriteSeed = (movie: DbMovie) => {
   const key = mediaKey(movie);
-  if (selectedFavoriteKeys.value.includes(key)) {
-    selectedFavoriteKeys.value = selectedFavoriteKeys.value.filter(
-      (selectedKey) => selectedKey !== key,
-    );
-    markCurrentResultsStale();
-    return;
-  }
-  if (selectedFavoriteKeys.value.length >= 5) {
-    showLimitToast("Choose up to five favorites.");
-    return;
-  }
-  selectedFavoriteKeys.value = [...selectedFavoriteKeys.value, key];
+  selectedFavoriteKeys.value = toggleSingleSelection(
+    selectedFavoriteKeys.value,
+    key,
+  );
   markCurrentResultsStale();
 };
 
@@ -278,39 +267,6 @@ watch(searchQuery, (value) => {
 const seedSignature = (seeds: RecommendationSeed[]) =>
   seeds.map(mediaKey).sort().join("|");
 
-const fetchSeedRecommendations = async (
-  seed: RecommendationSeed,
-): Promise<DbMovie[]> => {
-  const type = seed.type === "tv" ? "tv" : "movie";
-  const responses = await Promise.allSettled(
-    [1, 2, 3].map((page) =>
-      $fetch<RawMovieWithTotal>(
-        `https://api.themoviedb.org/3/${type}/${seed.id}/recommendations`,
-        {
-          params: {
-            api_key: config.public.tmdbApiKey,
-            language: "en-US",
-            page,
-          },
-        },
-      ),
-    ),
-  );
-  const successfulResponses = responses.flatMap((response) =>
-    response.status === "fulfilled" ? [response.value] : [],
-  );
-  if (!successfulResponses.length) {
-    throw new Error(`Could not load recommendations for ${seed.title}`);
-  }
-  return successfulResponses.flatMap(
-    (response) => convertToDbType(response, type).movies,
-  );
-};
-
-const recommendationLoader = createRecommendationLoader(
-  fetchSeedRecommendations,
-);
-
 const generateRecommendations = async () => {
   const tab = activeTab.value;
   const seeds = [...currentSeeds.value];
@@ -321,76 +277,47 @@ const generateRecommendations = async () => {
   generatingByTab[tab] = true;
   errorByTab[tab] = null;
 
-  if (tab === "findSimilar") {
-    try {
-      const seed = seeds[0]!;
-      const response = await $fetch<AiRecommendationResponse>(
-        "/api/recommendations/ai",
-        { method: "POST", body: { id: seed.id, type: seed.type } },
-      );
-      if (
-        currentRequestId !== requestIdByTab[tab] ||
-        signature !== seedSignature(selectedManualSeeds.value)
-      ) return;
-      aiResponse.value = response;
-      groupsByTab[tab] = [
-        {
-          seed,
-          candidates: response.recommendations.map((item) => item.movie),
-        },
-      ];
-      staleByTab[tab] = false;
-      resultPage.value = 1;
-      resultFirst.value = 0;
-    } catch {
-      aiResponse.value = null;
-      groupsByTab[tab] = [];
-      errorByTab[tab] = "Could not load tailored recommendations.";
-    } finally {
-      generatingByTab[tab] = false;
-    }
-    return;
-  }
-
-  const { groups, failedSeeds } = await recommendationLoader.load(seeds);
-
-  if (
-    currentRequestId !== requestIdByTab[tab] ||
-    signature !== seedSignature(
-      tab === "forYou" ? selectedFavoriteSeeds.value : selectedManualSeeds.value,
-    )
-  ) {
-    generatingByTab[tab] = false;
-    return;
-  }
-
-  if (!groups.length) {
-    groupsByTab[tab] = [];
+  try {
+    const seed = seeds[0]!;
+    const response = await $fetch<AiRecommendationResponse>(
+      "/api/recommendations/ai",
+      { method: "POST", body: { id: seed.id, type: seed.type } },
+    );
+    const latestSeeds =
+      tab === "forYou"
+        ? selectedFavoriteSeeds.value
+        : selectedManualSeeds.value;
+    if (
+      currentRequestId !== requestIdByTab[tab] ||
+      signature !== seedSignature(latestSeeds)
+    ) return;
+    aiResponseByTab[tab] = response;
+    groupsByTab[tab] = [
+      {
+        seed,
+        candidates: response.recommendations.map((item) => item.movie),
+      },
+    ];
     staleByTab[tab] = false;
-    errorByTab[tab] =
-      "TMDB could not load recommendations for the selected titles.";
-    toast.add({
-      severity: "error",
-      summary: "Recommendations failed",
-      detail: "TMDB could not load recommendations for the selected titles.",
-      life: 4000,
-    });
-  } else {
-    groupsByTab[tab] = groups;
-    staleByTab[tab] = false;
-    errorByTab[tab] = null;
     resultPage.value = 1;
     resultFirst.value = 0;
-    if (failedSeeds.length) {
-      toast.add({
-        severity: "warn",
-        summary: "Some titles failed",
-        detail: `Could not load: ${failedSeeds.join(", ")}`,
-        life: 4000,
-      });
+  } catch {
+    const latestSeeds =
+      tab === "forYou"
+        ? selectedFavoriteSeeds.value
+        : selectedManualSeeds.value;
+    if (
+      currentRequestId !== requestIdByTab[tab] ||
+      signature !== seedSignature(latestSeeds)
+    ) return;
+    aiResponseByTab[tab] = null;
+    groupsByTab[tab] = [];
+    errorByTab[tab] = "Could not load tailored recommendations.";
+  } finally {
+    if (currentRequestId === requestIdByTab[tab]) {
+      generatingByTab[tab] = false;
     }
   }
-  generatingByTab[tab] = false;
 };
 
 const resetFilters = () => {
@@ -528,7 +455,7 @@ watch(
       <template v-if="activeTab === 'forYou'">
         <div class="font-semibold mb-1">Choose favorites</div>
         <div class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-          Select up to five titles to shape these recommendations.
+          Select one favorite to shape these AI recommendations.
         </div>
 
         <div
@@ -647,10 +574,10 @@ watch(
     </section>
 
     <div
-      v-if="activeTab === 'findSimilar' && aiResponse?.notice"
+      v-if="aiResponseByTab[activeTab]?.notice"
       class="mx-4 mb-4 p-3 text-sm rounded border border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-300"
     >
-      {{ aiResponse.notice }}
+      {{ aiResponseByTab[activeTab]?.notice }}
     </div>
 
     <div

@@ -234,9 +234,9 @@ describe("AI recommendation service", () => {
     expect(loadFallback).toHaveBeenCalledOnce();
   });
 
-  it("removes duplicate and seed results and returns at most ten matches", async () => {
+  it("removes duplicate and seed results and returns at most twenty matches", async () => {
     const seedMovie = movie(99, "Seed");
-    const candidates = Array.from({ length: 13 }, (_, index) => ({
+    const candidates = Array.from({ length: 25 }, (_, index) => ({
       title: `Choice ${index}`,
       year: 2020,
       reason: `Reason ${index}`,
@@ -275,9 +275,9 @@ describe("AI recommendation service", () => {
     );
 
     expect(result.source).toBe("ai");
-    expect(result.recommendations).toHaveLength(10);
+    expect(result.recommendations).toHaveLength(20);
     expect(result.recommendations.map(({ movie }) => movie.id)).not.toContain(99);
-    expect(new Set(result.recommendations.map(({ movie }) => movie.id)).size).toBe(10);
+    expect(new Set(result.recommendations.map(({ movie }) => movie.id)).size).toBe(20);
   });
 
   it("uses a cached response without consuming the uncached request limit", async () => {

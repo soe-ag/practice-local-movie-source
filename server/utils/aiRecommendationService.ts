@@ -10,7 +10,7 @@ export const AI_RECOMMENDATION_MODELS = [
   "openrouter/free",
 ] as const;
 export const AI_RECOMMENDATION_TIMEOUT_MS = 10_000;
-export const AI_RECOMMENDATION_PROMPT_VERSION = "v1";
+export const AI_RECOMMENDATION_PROMPT_VERSION = "v2";
 
 export type AiSeedDetails = {
   id: number;
@@ -81,7 +81,7 @@ export const createAiRecommendationService = (dependencies: Dependencies) => ({
           const generated = await dependencies.generateCandidates(seed, model);
           const seen = new Set<string>([`${input.type}:${input.id}`]);
           const resolved = await Promise.all(
-            generated.candidates.slice(0, 12).map(async (candidate) => ({
+            generated.candidates.slice(0, 24).map(async (candidate) => ({
               movie: await dependencies.resolveCandidate(candidate, input.type),
               reason: candidate.reason,
             })),
@@ -94,7 +94,7 @@ export const createAiRecommendationService = (dependencies: Dependencies) => ({
               seen.add(movieKey);
               return [{ movie, reason: reason.trim().slice(0, 240) }];
             })
-            .slice(0, 10);
+            .slice(0, 20);
           if (!recommendations.length) continue;
           const response: AiRecommendationResponse = {
             source: "ai",
@@ -114,7 +114,7 @@ export const createAiRecommendationService = (dependencies: Dependencies) => ({
         source: "tmdb",
         recommendations: fallback
           .filter((movie) => movie.type === input.type && movie.id !== input.id)
-          .slice(0, 10)
+          .slice(0, 20)
           .map((movie) => ({ movie })),
         notice:
           "AI recommendations are unavailable, so standard TMDB matches are shown.",

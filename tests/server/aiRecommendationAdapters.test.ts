@@ -39,6 +39,7 @@ describe("AI recommendation adapters", () => {
     expect(prompt).toContain("Director One");
     expect(prompt).toContain("Actor One");
     expect(prompt).toContain("same media type");
+    expect(prompt).toContain("exactly 24");
     expect(prompt).toContain("Do not\nchoose titles merely because they share a genre");
   });
 

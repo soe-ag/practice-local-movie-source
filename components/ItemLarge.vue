@@ -115,13 +115,6 @@ const chunkedList = computed(() => {
         >
           {{ item.release ?? "-" }}
         </div>
-        <div
-          v-if="item.recommendationReason"
-          class="text-xs text-gray-600 dark:text-gray-300 px-2 mt-1 text-center line-clamp-3"
-        >
-          <span class="font-semibold">Why it matches:</span>
-          {{ item.recommendationReason }}
-        </div>
       </div>
     </div>
   </div>

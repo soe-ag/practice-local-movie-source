@@ -3,6 +3,7 @@ import type { DbMovie, RecommendationSeed } from "~/utils/type";
 import {
   buildRecommendations,
   paginateRecommendations,
+  toggleSingleSelection,
 } from "~/utils/recommendations";
 
 const movie = (
@@ -33,6 +34,15 @@ const seed = (
   type: "movie",
   genres,
   posterUrl: `/seed-${id}.jpg`,
+});
+
+describe("toggleSingleSelection", () => {
+  it("keeps recommendation seed selection to one item", () => {
+    expect(toggleSingleSelection(["movie:1"], "movie:2")).toEqual([
+      "movie:2",
+    ]);
+    expect(toggleSingleSelection(["movie:1"], "movie:1")).toEqual([]);
+  });
 });
 
 describe("buildRecommendations", () => {

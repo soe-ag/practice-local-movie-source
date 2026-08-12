@@ -34,7 +34,7 @@ const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 export const buildRecommendationPrompt = (seed: AiSeedDetails) => `
-Recommend exactly 12 ${seed.type === "movie" ? "movies" : "TV series"} for someone who liked this title.
+Recommend exactly 24 ${seed.type === "movie" ? "movies" : "TV series"} for someone who liked this title.
 
 Selected title: ${seed.title} (${seed.release ?? "year unknown"})
 Overview: ${seed.overview || "Not available"}
@@ -51,7 +51,7 @@ Do not include the selected title.
 
 Return only a JSON object with this exact shape and no markdown:
 {"recommendations":[{"title":"Real title","year":2000,"reason":"One concise sentence."}]}
-The recommendations array must contain exactly 12 items. Use null for an unknown year.
+The recommendations array must contain exactly 24 items. Use null for an unknown year.
 `.trim();
 
 export const parseOpenRouterCandidates = (content: string): AiCandidate[] => {
@@ -172,7 +172,7 @@ export const createOpenRouterAdapter = (apiKey: string) => ({
           { role: "user", content: buildRecommendationPrompt(seed) },
         ],
         reasoning: { effort: "none" },
-        max_tokens: 1_200,
+        max_tokens: 2_400,
         temperature: 0.4,
       },
     });

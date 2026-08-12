@@ -42,7 +42,7 @@ const ratingText = computed(() => {
           :src="selectedMovie.posterUrl"
           :alt="selectedMovie.title"
           class="w-auto h-auto max-w-full max-h-[75vh] sm:max-h-[70vh] object-contain mx-auto block"
-        />
+        >
 
         <button
           type="button"
@@ -104,6 +104,17 @@ const ratingText = computed(() => {
             "No description available for this title yet."
           }}
         </p>
+
+        <div v-if="selectedMovie.recommendationReason" class="mt-6">
+          <div
+            class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400 mb-2"
+          >
+            Why it matches:
+          </div>
+          <p class="text-[15px] leading-7 text-gray-700 dark:text-gray-200">
+            {{ selectedMovie.recommendationReason }}
+          </p>
+        </div>
       </div>
     </div>
   </Drawer>

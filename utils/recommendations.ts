@@ -8,6 +8,11 @@ import type {
 export const mediaKey = (item: Pick<DbMovie, "id" | "type">): string =>
   `${item.type}:${item.id}`;
 
+export const toggleSingleSelection = (
+  selectedKeys: string[],
+  key: string,
+): string[] => (selectedKeys.includes(key) ? [] : [key]);
+
 type BuildRecommendationsOptions = {
   groups: RecommendationGroup[];
   excludedKeys: Set<string>;
