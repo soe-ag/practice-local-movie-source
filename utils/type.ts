@@ -66,14 +66,16 @@ export type RecommendationFilters = {
   genre?: string;
 };
 
-export type AiRecommendationItem = {
+export type RecommendationItem = {
   movie: DbMovie;
   reason?: string;
 };
 
-export type AiRecommendationResponse = {
+export type RecommendationResponse = {
   source: "ai" | "tmdb";
   model?: string;
-  recommendations: AiRecommendationItem[];
+  recommendations: RecommendationItem[];
   notice?: string;
 };
+
+export type RecommendationSource = RecommendationResponse["source"];

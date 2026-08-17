@@ -3,6 +3,7 @@ import type { DbMovie, RecommendationSeed } from "~/utils/type";
 import {
   buildRecommendations,
   paginateRecommendations,
+  recommendationEndpoint,
   toggleSingleSelection,
 } from "~/utils/recommendations";
 
@@ -42,6 +43,13 @@ describe("toggleSingleSelection", () => {
       "movie:2",
     ]);
     expect(toggleSingleSelection(["movie:1"], "movie:1")).toEqual([]);
+  });
+});
+
+describe("recommendationEndpoint", () => {
+  it("routes AI and TMDB choices to different server endpoints", () => {
+    expect(recommendationEndpoint("ai")).toBe("/api/recommendations/ai");
+    expect(recommendationEndpoint("tmdb")).toBe("/api/recommendations/tmdb");
   });
 });
 

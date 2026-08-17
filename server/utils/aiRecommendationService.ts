@@ -1,7 +1,7 @@
 import type {
-  AiRecommendationResponse,
   DbMovie,
   MediaType,
+  RecommendationResponse,
 } from "~/utils/type";
 
 export const AI_RECOMMENDATION_MODELS = [
@@ -31,8 +31,8 @@ export type AiCandidate = {
 };
 
 type Cache = {
-  get(key: string): Promise<AiRecommendationResponse | null>;
-  set(key: string, value: AiRecommendationResponse): Promise<void>;
+  get(key: string): Promise<RecommendationResponse | null>;
+  set(key: string, value: RecommendationResponse): Promise<void>;
 };
 
 type Limiter = {
@@ -67,7 +67,7 @@ export const createAiRecommendationService = (dependencies: Dependencies) => ({
   async recommend(
     input: { id: number; type: MediaType },
     clientKey: string,
-  ): Promise<AiRecommendationResponse> {
+  ): Promise<RecommendationResponse> {
     const key = cacheKey(input);
     const cached = await dependencies.cache.get(key);
     if (cached) return cached;
@@ -96,7 +96,7 @@ export const createAiRecommendationService = (dependencies: Dependencies) => ({
             })
             .slice(0, 20);
           if (!recommendations.length) continue;
-          const response: AiRecommendationResponse = {
+          const response: RecommendationResponse = {
             source: "ai",
             model: generated.model,
             recommendations,

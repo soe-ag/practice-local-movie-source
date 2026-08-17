@@ -3,6 +3,7 @@ import type {
   RecommendationCandidate,
   RecommendationFilters,
   RecommendationGroup,
+  RecommendationSource,
 } from "~/utils/type";
 
 export const mediaKey = (item: Pick<DbMovie, "id" | "type">): string =>
@@ -12,6 +13,9 @@ export const toggleSingleSelection = (
   selectedKeys: string[],
   key: string,
 ): string[] => (selectedKeys.includes(key) ? [] : [key]);
+
+export const recommendationEndpoint = (source: RecommendationSource) =>
+  `/api/recommendations/${source}` as const;
 
 type BuildRecommendationsOptions = {
   groups: RecommendationGroup[];

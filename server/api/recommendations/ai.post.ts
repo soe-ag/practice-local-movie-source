@@ -1,5 +1,5 @@
 import { createError, getRequestIP, readBody } from "h3";
-import type { AiRecommendationResponse } from "~/utils/type";
+import type { RecommendationResponse } from "~/utils/type";
 import { createAiRecommendationService } from "~/server/utils/aiRecommendationService";
 import { parseRecommendationRequest } from "~/server/utils/recommendationRequest";
 import {
@@ -13,7 +13,7 @@ import {
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const LIMIT_WINDOW_MS = 60 * 60 * 1000;
-const cache = createTtlCache<AiRecommendationResponse>(CACHE_TTL_MS);
+const cache = createTtlCache<RecommendationResponse>(CACHE_TTL_MS);
 const limiter = createWindowLimiter(5, LIMIT_WINDOW_MS);
 
 export default defineEventHandler(async (event) => {

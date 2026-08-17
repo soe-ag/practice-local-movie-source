@@ -2,13 +2,14 @@
 import { useDebounceFn } from "@vueuse/core";
 import type { PageState } from "primevue/paginator";
 import type {
-  AiRecommendationResponse,
   DbMovie,
   RawMovie,
   RawMovieWithTotal,
   RecommendationCandidate,
   RecommendationGroup,
+  RecommendationResponse,
   RecommendationSeed,
+  RecommendationSource,
 } from "~/utils/type";
 import { api } from "~/convex/_generated/api";
 import { GENRES } from "~/utils/genres";
@@ -17,6 +18,7 @@ import {
   matchesRecommendationFilters,
   mediaKey,
   paginateRecommendations,
+  recommendationEndpoint,
   toggleSingleSelection,
 } from "~/utils/recommendations";
 import { parseAiRecommendationRoute } from "~/utils/aiRecommendationNavigation";
@@ -28,6 +30,13 @@ const toast = useToast();
 const route = useRoute();
 
 const activeTab = ref<RecommendationTab>("forYou");
+const recommendationSource = ref<RecommendationSource>("ai");
+const useAiRecommendations = computed({
+  get: () => recommendationSource.value === "ai",
+  set: (enabled: boolean) => {
+    recommendationSource.value = enabled ? "ai" : "tmdb";
+  },
+});
 const selectedFavoriteKeys = ref<string[]>([]);
 const selectedManualSeeds = ref<RecommendationSeed[]>([]);
 const searchQuery = ref("");
@@ -61,8 +70,8 @@ const requestIdByTab = reactive<Record<RecommendationTab, number>>({
   forYou: 0,
   findSimilar: 0,
 });
-const aiResponseByTab = reactive<
-  Record<RecommendationTab, AiRecommendationResponse | null>
+const recommendationResponseByTab = reactive<
+  Record<RecommendationTab, RecommendationResponse | null>
 >({
   forYou: null,
   findSimilar: null,
@@ -128,9 +137,9 @@ const excludedKeys = computed(() => {
 });
 
 const rankedRecommendations = computed<RecommendationCandidate[]>(() => {
-  const aiResponse = aiResponseByTab[activeTab.value];
-  if (aiResponse) {
-    return aiResponse.recommendations
+  const response = recommendationResponseByTab[activeTab.value];
+  if (response) {
+    return response.recommendations
       .map(({ movie, reason }) => ({
         ...movie,
         recommendationReason: reason,
@@ -168,8 +177,8 @@ const displayedRecommendations = computed(
 );
 
 const unfilteredRecommendations = computed<RecommendationCandidate[]>(() =>
-  aiResponseByTab[activeTab.value]
-    ? aiResponseByTab[activeTab.value]!.recommendations
+  recommendationResponseByTab[activeTab.value]
+    ? recommendationResponseByTab[activeTab.value]!.recommendations
         .map(({ movie, reason }) => ({
           ...movie,
           recommendationReason: reason,
@@ -273,14 +282,15 @@ const generateRecommendations = async () => {
   if (!seeds.length) return;
 
   const signature = seedSignature(seeds);
+  const source = recommendationSource.value;
   const currentRequestId = ++requestIdByTab[tab];
   generatingByTab[tab] = true;
   errorByTab[tab] = null;
 
   try {
     const seed = seeds[0]!;
-    const response = await $fetch<AiRecommendationResponse>(
-      "/api/recommendations/ai",
+    const response = await $fetch<RecommendationResponse>(
+      recommendationEndpoint(source),
       { method: "POST", body: { id: seed.id, type: seed.type } },
     );
     const latestSeeds =
@@ -289,9 +299,10 @@ const generateRecommendations = async () => {
         : selectedManualSeeds.value;
     if (
       currentRequestId !== requestIdByTab[tab] ||
+      source !== recommendationSource.value ||
       signature !== seedSignature(latestSeeds)
     ) return;
-    aiResponseByTab[tab] = response;
+    recommendationResponseByTab[tab] = response;
     groupsByTab[tab] = [
       {
         seed,
@@ -308,11 +319,12 @@ const generateRecommendations = async () => {
         : selectedManualSeeds.value;
     if (
       currentRequestId !== requestIdByTab[tab] ||
+      source !== recommendationSource.value ||
       signature !== seedSignature(latestSeeds)
     ) return;
-    aiResponseByTab[tab] = null;
+    recommendationResponseByTab[tab] = null;
     groupsByTab[tab] = [];
-    errorByTab[tab] = "Could not load tailored recommendations.";
+    errorByTab[tab] = `Could not load ${source === "ai" ? "AI" : "TMDB"} recommendations.`;
   } finally {
     if (currentRequestId === requestIdByTab[tab]) {
       generatingByTab[tab] = false;
@@ -340,6 +352,19 @@ watch([filterType, filterRating, filterGenre], () => {
 watch(activeTab, () => {
   resetFilters();
   searchResults.value = [];
+});
+
+watch(recommendationSource, () => {
+  for (const tab of ["forYou", "findSimilar"] satisfies RecommendationTab[]) {
+    requestIdByTab[tab] += 1;
+    generatingByTab[tab] = false;
+    errorByTab[tab] = null;
+    staleByTab[tab] = false;
+    groupsByTab[tab] = [];
+    recommendationResponseByTab[tab] = null;
+  }
+  resultPage.value = 1;
+  resultFirst.value = 0;
 });
 
 const loadRouteSeed = async () => {
@@ -384,31 +409,64 @@ watch(
     <div
       class="flex flex-col xl:flex-row gap-4 mx-4 xl:justify-between items-start xl:items-center text-sm mb-4"
     >
-      <div class="flex gap-2">
-        <Button
-          label="For You"
-          icon="i-material-symbols-favorite-rounded"
-          size="small"
-          :severity="activeTab === 'forYou' ? undefined : 'secondary'"
-          :class="
-            activeTab === 'forYou'
-              ? '!bg-gradient-to-r !from-orange-500 !to-red-500 !border-transparent !text-white'
-              : ''
-          "
-          @click="activeTab = 'forYou'"
-        />
-        <Button
-          label="Find Similar"
-          icon="i-material-symbols-search-rounded"
-          size="small"
-          :severity="activeTab === 'findSimilar' ? undefined : 'secondary'"
-          :class="
-            activeTab === 'findSimilar'
-              ? '!bg-gradient-to-r !from-orange-500 !to-red-500 !border-transparent !text-white'
-              : ''
-          "
-          @click="activeTab = 'findSimilar'"
-        />
+      <div class="flex items-center gap-4 flex-wrap">
+        <div class="flex gap-2">
+          <Button
+            label="For You"
+            icon="i-material-symbols-favorite-rounded"
+            size="small"
+            :severity="activeTab === 'forYou' ? undefined : 'secondary'"
+            :class="
+              activeTab === 'forYou'
+                ? '!bg-gradient-to-r !from-orange-500 !to-red-500 !border-transparent !text-white'
+                : ''
+            "
+            @click="activeTab = 'forYou'"
+          />
+          <Button
+            label="Find Similar"
+            icon="i-material-symbols-search-rounded"
+            size="small"
+            :severity="activeTab === 'findSimilar' ? undefined : 'secondary'"
+            :class="
+              activeTab === 'findSimilar'
+                ? '!bg-gradient-to-r !from-orange-500 !to-red-500 !border-transparent !text-white'
+                : ''
+            "
+            @click="activeTab = 'findSimilar'"
+          />
+        </div>
+
+        <div
+          class="flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5"
+        >
+          <span
+            class="text-xs font-semibold transition-colors"
+            :class="
+              useAiRecommendations
+                ? 'text-gray-400'
+                : 'text-gray-900 dark:text-white'
+            "
+          >
+            TMDB
+          </span>
+          <ToggleSwitch
+            v-model="useAiRecommendations"
+            input-id="recommendation-source-toggle"
+            aria-label="Use AI recommendations"
+          />
+          <label
+            for="recommendation-source-toggle"
+            class="text-xs font-semibold cursor-pointer transition-colors"
+            :class="
+              useAiRecommendations
+                ? 'text-orange-600 dark:text-orange-400'
+                : 'text-gray-400'
+            "
+          >
+            AI
+          </label>
+        </div>
       </div>
 
       <div v-if="currentGroups.length" class="flex gap-3 items-center flex-wrap">
@@ -455,7 +513,7 @@ watch(
       <template v-if="activeTab === 'forYou'">
         <div class="font-semibold mb-1">Choose favorites</div>
         <div class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-          Select one favorite to shape these AI recommendations.
+          Select one favorite to shape these recommendations.
         </div>
 
         <div
@@ -574,10 +632,10 @@ watch(
     </section>
 
     <div
-      v-if="aiResponseByTab[activeTab]?.notice"
+      v-if="recommendationResponseByTab[activeTab]?.notice"
       class="mx-4 mb-4 p-3 text-sm rounded border border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-300"
     >
-      {{ aiResponseByTab[activeTab]?.notice }}
+      {{ recommendationResponseByTab[activeTab]?.notice }}
     </div>
 
     <div
