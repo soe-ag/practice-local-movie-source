@@ -28,6 +28,10 @@ const { openDrawer } = useMovieDrawer();
     >
       <NuxtImg
         :src="item.posterUrl"
+        :alt="`${item.title} poster`"
+        width="160"
+        height="224"
+        loading="lazy"
         class="w-full h-full object-cover"
         placeholder
       />

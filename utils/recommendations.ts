@@ -3,6 +3,7 @@ import type {
   RecommendationCandidate,
   RecommendationFilters,
   RecommendationGroup,
+  RecommendationItem,
   RecommendationSource,
 } from "~/utils/type";
 
@@ -16,6 +17,18 @@ export const toggleSingleSelection = (
 
 export const recommendationEndpoint = (source: RecommendationSource) =>
   `/api/recommendations/${source}` as const;
+
+export const mapRecommendationItemsToCandidates = (
+  items: RecommendationItem[],
+): RecommendationCandidate[] =>
+  items.map(({ movie, reason }) => ({
+    ...movie,
+    recommendationReason: reason,
+    sharedGenres: [],
+    seedMatchCount: 1,
+    voteCount: movie.voteCount ?? 0,
+    popularity: movie.popularity ?? 0,
+  }));
 
 type BuildRecommendationsOptions = {
   groups: RecommendationGroup[];

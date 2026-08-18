@@ -70,7 +70,9 @@ const route = useRoute();
       <div class="col-span-1 flex justify-end items-center gap-1 pr-2">
         <ClientOnly>
           <button
-            class="text-gray-600 dark:text-gray-300 hover:text-yellow-500 dark:hover:text-yellow-400 transition-colors cursor-pointer text-xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 outline-none border-none bg-transparent flex items-center justify-center"
+            type="button"
+            :aria-label="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
+            class="text-gray-600 dark:text-gray-300 hover:text-yellow-500 dark:hover:text-yellow-400 transition-colors cursor-pointer text-xl p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-orange-500 border-none bg-transparent flex items-center justify-center"
             @click="toggleDark()"
           >
             <div
@@ -79,6 +81,7 @@ const route = useRoute();
                   ? 'i-material-symbols-light-mode'
                   : 'i-material-symbols-dark-mode'
               "
+            aria-hidden="true"
             />
           </button>
         </ClientOnly>
