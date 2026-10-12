@@ -115,7 +115,7 @@ watch(() => [route.query.tab, route.query.id, route.query.type], loadRouteSeed, 
     <div v-if="currentState.response?.notice" role="status" aria-live="polite" class="mx-4 mb-4 p-3 text-sm rounded border border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-300">{{ currentState.response.notice }}</div>
     <div v-if="currentState.error" role="alert" class="mx-4 mb-4 p-4 bg-red-500/20 border border-red-500 rounded"><p class="text-red-400">{{ currentState.error }}</p><p class="text-sm text-gray-400 mt-2">Check the connection and try generating again.</p></div>
     <div v-if="currentState.stale" role="status" aria-live="polite" class="mx-4 mb-4 p-3 text-sm rounded border border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-300">Your selection changed. Generate again to refresh these results.</div>
-    <div v-if="currentState.generating" class="flex flex-wrap justify-start items-start px-2 my-4 md:px-8 max-w-[1400px] mx-auto"><ItemSkeleton :count="10" /></div>
+    <div v-if="currentState.generating" class="my-4"><ItemSkeletonLarge :count="10" /></div>
     <div v-else-if="currentState.groups.length"><ItemSmart :list="paginatedRecommendations.items" /><Paginator v-if="paginatedRecommendations.totalResults > 20" v-model:first="resultFirst" :rows="20" :total-records="paginatedRecommendations.totalResults" :pt="{ root: { class: '!bg-transparent' } }" @page="handleResultPageChange" /><div v-if="!paginatedRecommendations.items.length" class="mx-4 text-sm text-gray-500 dark:text-gray-400">{{ unfilteredRecommendations.length ? 'No recommendations match the selected filters.' : 'No new recommendations were found for this selection.' }}</div></div>
   </div>
 </template>

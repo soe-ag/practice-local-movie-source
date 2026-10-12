@@ -83,6 +83,8 @@ const { openDrawer } = useMovieDrawer();
         </div>
       </div>
     </div>
-    <div class="text-xs my-1">{{ item.title }} ({{ item.release ?? "-" }})</div>
+    <div class="text-xs my-1 whitespace-nowrap overflow-hidden text-ellipsis">
+      {{ item.title }} ({{ item.release ?? "-" }})
+    </div>
   </div>
 </template>

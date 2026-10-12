@@ -286,7 +286,7 @@ const resetFilters = () => {
       v-if="isPending"
       class="flex flex-wrap justify-start items-start px-2 my-4 md:px-8 max-w-[1400px] mx-auto"
     >
-      <ItemSkeleton :count="10" />
+      <ItemSkeleton :count="20" />
     </div>
 
     <div v-else>

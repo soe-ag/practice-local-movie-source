@@ -39,12 +39,12 @@ const chunkedList = computed(() => {
         class="stacked-item flex flex-col"
         :style="{ zIndex: 50 - index }"
       >
-        <!-- Poster skeleton -->
-        <Skeleton class="w-full aspect-[2/3] rounded-lg mb-3 flex-shrink-0" />
-        <!-- Title skeleton -->
-        <Skeleton class="w-[80%] h-4 mb-2" />
-        <!-- Year skeleton -->
-        <Skeleton class="w-[40%] h-3" />
+        <div
+          class="relative w-full aspect-[2/3] flex-shrink-0 overflow-hidden rounded-lg bg-gray-200 animate-pulse dark:bg-gray-700"
+          aria-hidden="true"
+        />
+        <!-- Preserve the card's title and year space without a text skeleton. -->
+        <div class="h-12 flex-shrink-0" aria-hidden="true" />
       </div>
     </div>
   </div>

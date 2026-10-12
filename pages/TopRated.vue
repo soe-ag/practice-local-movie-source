@@ -156,7 +156,7 @@ const handlePopularPageChange = async (event: PageState) => {
     <!-- Loading skeleton for movies -->
     <div
       v-if="pendingMovies && isShowTopRatedMovies"
-      class="flex flex-wrap justify-center sm:justify-start items-start px-2 md:px-8 max-w-[1400px] mx-auto my-6"
+      class="flex flex-wrap justify-center sm:justify-start items-start px-2 md:px-8 max-w-[1400px] mx-auto"
     >
       <ItemSkeleton :count="20" />
     </div>
@@ -182,7 +182,7 @@ const handlePopularPageChange = async (event: PageState) => {
     <!-- Loading skeleton for series -->
     <div
       v-if="isSeriesPending && isShowTopRatedSeries"
-      class="flex flex-wrap justify-center sm:justify-start items-start px-2 md:px-8 max-w-[1400px] mx-auto my-6"
+      class="flex flex-wrap justify-center sm:justify-start items-start px-2 md:px-8 max-w-[1400px] mx-auto"
     >
       <ItemSkeleton :count="20" />
     </div>
