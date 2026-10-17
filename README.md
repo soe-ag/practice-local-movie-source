@@ -19,14 +19,14 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 
 ## Pages
 
-| Route | Description |
-|---|---|
-| `/` | Popular/trending movies with search |
-| `/TopRated` | Top-rated movies and TV series |
-| `/WatchList` | Personal watch list (sortable, filterable) |
-| `/Favorite` | Favorites list (sortable, filterable) |
+| Route              | Description                                            |
+| ------------------ | ------------------------------------------------------ |
+| `/`                | Popular/trending movies with search                    |
+| `/TopRated`        | Top-rated movies and TV series                         |
+| `/WatchList`       | Personal watch list (sortable, filterable)             |
+| `/Favorite`        | Favorites list (sortable, filterable)                  |
 | `/recommendations` | Recommendations from Favorites or searched seed titles |
-| `/login` | Login page |
+| `/login`           | Login page                                             |
 
 ## Project Structure
 
@@ -77,7 +77,7 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 
 ## Prerequisites
 
-- Node.js 20.19.0+
+- Node.js 24.19.0+
 - A [TMDB API key](https://developer.themoviedb.org/docs/getting-started)
 - A [Convex](https://www.convex.dev/) project
 
