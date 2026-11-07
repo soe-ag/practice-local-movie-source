@@ -4,7 +4,6 @@ import { api } from "~/convex/_generated/api";
 import { GENRES } from "~/utils/genres";
 import { parseAiRecommendationRoute } from "~/utils/aiRecommendationNavigation";
 
-const config = useRuntimeConfig();
 const toast = useToast();
 const route = useRoute();
 
@@ -40,7 +39,7 @@ const loadRouteSeed = async () => {
   if (!seed) return;
   activeTab.value = "findSimilar";
   try {
-    const item = await $fetch<RawMovie>(`https://api.themoviedb.org/3/${seed.type}/${seed.id}`, { params: { api_key: config.public.tmdbApiKey, language: "en-US" } });
+    const item = await $fetch<RawMovie>("/api/tmdb/title", { params: { type: seed.type, id: seed.id } });
     if (currentRequestId !== routeSeedRequestId) return;
     selectedManualSeeds.value = convertToDbType({ total_results: 1, results: [{ ...item, media_type: seed.type }] }, seed.type).movies as RecommendationSeed[];
   } catch {

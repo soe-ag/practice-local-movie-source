@@ -43,7 +43,6 @@ export const useRecommendations = (options: {
   favorites: Ref<DbMovie[]> | ComputedRef<DbMovie[]>;
   watchList: Ref<DbMovie[]> | ComputedRef<DbMovie[]>;
 }) => {
-  const config = useRuntimeConfig();
   const toast = useToast();
   const route = useRoute();
   const router = useRouter();
@@ -174,19 +173,10 @@ export const useRecommendations = (options: {
     searchController?.abort();
     searchController = new AbortController();
     try {
-      const response = await $fetch<RawMovieWithTotal>(
-        "https://api.themoviedb.org/3/search/multi",
-        {
-          params: {
-            api_key: config.public.tmdbApiKey,
-            include_adult: false,
-            language: "en-US",
-            page: 1,
-            query,
-          },
-          signal: searchController.signal,
-        },
-      );
+      const response = await $fetch<RawMovieWithTotal>("/api/tmdb/search", {
+        params: { page: 1, query },
+        signal: searchController.signal,
+      });
       if (requestId !== searchRequestId) return;
       searchResults.value = convertToDbType(response).movies
         .filter((item) => item.type === "movie" || item.type === "tv")

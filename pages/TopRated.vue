@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import { useRuntimeConfig } from "#app";
 import type { PageState } from "primevue/paginator";
 import type { DbMovie, RawMovieWithTotal } from "~/utils/type";
 // definePageMeta({ layout: "default" });
-
-const config = useRuntimeConfig();
 
 const isShowTopRatedMovies = ref(true);
 const isShowTopRatedSeries = ref(false);
@@ -16,12 +13,8 @@ const isSeriesPending = ref(false);
 const { data, pending: pendingMovies } = await useAsyncData(
   "fetchTopRatedMovies",
   () =>
-    $fetch<RawMovieWithTotal>(`https://api.themoviedb.org/3/movie/top_rated`, {
-      params: {
-        api_key: config.public.tmdbApiKey,
-        language: "en-US",
-        page: currentPage.value,
-      },
+    $fetch<RawMovieWithTotal>("/api/tmdb/top-rated", {
+      params: { type: "movie", page: currentPage.value },
     }),
   { watch: [() => currentPage.value] }, // re-fetch
 );
@@ -44,17 +37,9 @@ const seriesFirst = ref(0);
 const fetchTopRatedSeries = async (page: number) => {
   isSeriesPending.value = true;
   try {
-    const rawTopRatedSeries = await $fetch<RawMovieWithTotal>(
-      "https://api.themoviedb.org/3/tv/top_rated",
-      {
-        params: {
-          api_key: config.public.tmdbApiKey,
-          include_adult: false,
-          language: "en-US",
-          page,
-        },
-      },
-    );
+    const rawTopRatedSeries = await $fetch<RawMovieWithTotal>("/api/tmdb/top-rated", {
+      params: { type: "tv", page },
+    });
 
     topRatedSeries.value = convertToDbType(rawTopRatedSeries, "tv").movies.filter(
       (item) => item.type !== "person",

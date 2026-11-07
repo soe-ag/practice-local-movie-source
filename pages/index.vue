@@ -1,15 +1,7 @@
 <script setup lang="ts">
-import { useRuntimeConfig } from "#app";
 import type { PageState } from "primevue/paginator";
 import type { DbMovie, RawMovieWithTotal } from "~/utils/type";
 // definePageMeta({ layout: "default" });
-
-const config = useRuntimeConfig();
-
-// Debug: Check if API key is loaded
-if (import.meta.client) {
-  console.log("TMDB API Key:", config.public.tmdbApiKey ? "Loaded" : "Missing");
-}
 
 const isShowSearchResult = ref(false);
 const searchQuery = ref("");
@@ -22,21 +14,10 @@ const isSearchPending = ref(false);
 const { data, error, pending, refresh } = await useAsyncData(
   "fetchPopularMovies",
   async () => {
-    if (!config.public.tmdbApiKey) {
-      console.error("TMDB API Key is missing!");
-      throw new Error("TMDB API Key is not configured");
-    }
     try {
-      const result = await $fetch<RawMovieWithTotal>(
-        `https://api.themoviedb.org/3/movie/popular`,
-        {
-          params: {
-            api_key: config.public.tmdbApiKey,
-            language: "en-US",
-            page: popularCurrentPage.value,
-          },
-        },
-      );
+      const result = await $fetch<RawMovieWithTotal>("/api/tmdb/popular", {
+        params: { page: popularCurrentPage.value },
+      });
       return result;
     } catch (err) {
       console.error("Error fetching popular movies:", err);
@@ -71,18 +52,9 @@ const fetchSearchResults = async (page: number) => {
   const searchId = ++currentSearchId;
   isSearchPending.value = true;
   try {
-    const searchData = await $fetch<RawMovieWithTotal>(
-      "https://api.themoviedb.org/3/search/multi",
-      {
-        params: {
-          api_key: config.public.tmdbApiKey,
-          include_adult: false,
-          query: searchQuery.value,
-          language: "en-US",
-          page,
-        },
-      },
-    );
+    const searchData = await $fetch<RawMovieWithTotal>("/api/tmdb/search", {
+      params: { query: searchQuery.value, page },
+    });
 
     // Discard result if a newer search or a Trending reset has been triggered
     if (searchId !== currentSearchId) return;
