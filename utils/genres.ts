@@ -1,5 +1,5 @@
 export const GENRES = [
-  { id: 12, name: "Abenteuer" },
+  { id: 12, name: "Adventure" },
   { id: 14, name: "Fantasy" },
   { id: 16, name: "Animation" },
   { id: 18, name: "Drama" },
@@ -33,3 +33,22 @@ export const GENRE_BY_ID = Object.fromEntries(
 ) as Record<number, string>;
 
 export type Genre = (typeof GENRES)[number];
+
+// TMDB uses different genre ids for movies and TV, and /discover only accepts
+// the ids that belong to the endpoint's media type.
+const MOVIE_GENRE_IDS = [
+  28, 12, 16, 35, 80, 99, 18, 10751, 14, 36, 27, 10402, 9648, 10749, 878, 10770,
+  53, 10752, 37,
+];
+const TV_GENRE_IDS = [
+  10759, 16, 35, 80, 99, 18, 10751, 10762, 9648, 10763, 10764, 10765, 10766,
+  10767, 10768, 37,
+];
+
+export const genresForType = (
+  type: "movie" | "tv",
+): { id: number; name: string }[] =>
+  (type === "movie" ? MOVIE_GENRE_IDS : TV_GENRE_IDS).map((id) => ({
+    id,
+    name: GENRE_BY_ID[id] ?? String(id),
+  }));

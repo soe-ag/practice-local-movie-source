@@ -7,27 +7,60 @@ const isShowSearchResult = ref(false);
 const searchQuery = ref("");
 let searchQueryLabel = "";
 
+// TMDB only serves the first 500 pages (20 results each), whatever total it reports.
+const MAX_BROWSABLE_RESULTS = 500 * 20;
+
 const popularCurrentPage = ref(1);
 const popularFirst = ref(0);
 const isSearchPending = ref(false);
 
+const filters = ref<HomeFilters>({ ...DEFAULT_HOME_FILTERS });
+const filtersActive = computed(() => isHomeFilterActive(filters.value));
+
 const { data, error, pending, refresh } = await useAsyncData(
   "fetchPopularMovies",
   async () => {
+    const current = filters.value;
     try {
-      const result = await $fetch<RawMovieWithTotal>("/api/tmdb/popular", {
-        params: { page: popularCurrentPage.value },
-      });
-      return result;
+      // Default view keeps the plain popular list; any filter switches to /discover,
+      // which filters before paginating so page counts stay correct.
+      const raw = isHomeFilterActive(current)
+        ? await $fetch<RawMovieWithTotal>("/api/tmdb/discover", {
+            params: {
+              type: current.type,
+              genre: current.genre || undefined,
+              minRating: current.minRating || undefined,
+              year: current.year || undefined,
+              page: popularCurrentPage.value,
+            },
+          })
+        : await $fetch<RawMovieWithTotal>("/api/tmdb/popular", {
+            params: { page: popularCurrentPage.value },
+          });
+      // Keep the media type with the data: /discover results carry no media_type.
+      return { raw, mediaType: current.type };
     } catch (err) {
       console.error("Error fetching popular movies:", err);
       throw err;
     }
   },
   {
-    watch: [() => popularCurrentPage.value],
+    watch: [() => popularCurrentPage.value, filters],
   },
 );
+
+const homeTitle = computed(() => {
+  if (!filtersActive.value) return "Trending Movies";
+  return filters.value.type === "tv" ? "Popular TV Series" : "Popular Movies";
+});
+
+// Changing filters always restarts from page 1. Updating the page and the filters
+// in the same tick means useAsyncData refetches once, not twice.
+const handleFiltersChange = (next: HomeFilters) => {
+  filters.value = next;
+  popularCurrentPage.value = 1;
+  popularFirst.value = 0;
+};
 
 // Log errors if any
 if (error.value) {
@@ -36,7 +69,7 @@ if (error.value) {
 
 const popularMovies = computed(() => {
   if (data.value) {
-    return convertToDbType(data.value);
+    return convertToDbType(data.value.raw, data.value.mediaType);
   } else return { movies: [], totalResults: 0 };
 });
 
@@ -85,13 +118,12 @@ const handleTrendingClick = () => {
   searchCurrentPage.value = 1;
   searchFirst.value = 0;
   popularFirst.value = 0;
-  // If already on page 1, the watcher won't fire (value unchanged), so call
-  // refresh() explicitly. Otherwise, setting the page to 1 triggers the watcher.
-  if (popularCurrentPage.value === 1) {
-    refresh();
-  } else {
-    popularCurrentPage.value = 1;
-  }
+  // "Trending" returns to the default view, so clear any filters too. If neither the
+  // page nor the filters change, the watcher won't fire, so refresh() explicitly.
+  const needsRefresh = popularCurrentPage.value === 1 && !filtersActive.value;
+  filters.value = { ...DEFAULT_HOME_FILTERS };
+  popularCurrentPage.value = 1;
+  if (needsRefresh) refresh();
 };
 
 const handleEnter = async (event: KeyboardEvent) => {
@@ -126,7 +158,7 @@ const handleSearchPageChange = async (event: PageState) => {
           <div
             class="i-material-symbols-local-fire-department-rounded text-transparent bg-gradient-to-r from-orange-400 to-red-500"
           />
-          Trending Movies
+          {{ homeTitle }}
         </div>
       </div>
       <div v-if="isShowSearchResult && searchResults.length > 0">
@@ -164,6 +196,13 @@ const handleSearchPageChange = async (event: PageState) => {
       </div>
     </div>
 
+    <HomeFilters
+      v-if="!isShowSearchResult"
+      :model-value="filters"
+      :disabled="pending"
+      @update:model-value="handleFiltersChange"
+    />
+
     <!-- Error message -->
     <div
       v-if="error"
@@ -191,7 +230,7 @@ const handleSearchPageChange = async (event: PageState) => {
       <Paginator
         v-model:first="popularFirst"
         :rows="20"
-        :total-records="popularMovies.totalResults"
+        :total-records="Math.min(popularMovies.totalResults, MAX_BROWSABLE_RESULTS)"
         :pt="{ root: { class: '!bg-transparent' } }"
         @page="handlePopularPageChange"
       />
@@ -204,7 +243,11 @@ const handleSearchPageChange = async (event: PageState) => {
       "
       class="mx-4 my-4 text-center text-gray-400"
     >
-      No movies found. Try refreshing the page.
+      {{
+        filtersActive
+          ? "No titles match these filters. Try loosening them."
+          : "No movies found. Try refreshing the page."
+      }}
     </div>
 
     <!-- Loading state / Skeletons for search results -->
