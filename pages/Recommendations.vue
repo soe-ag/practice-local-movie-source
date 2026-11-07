@@ -7,19 +7,6 @@ import { parseAiRecommendationRoute } from "~/utils/aiRecommendationNavigation";
 const toast = useToast();
 const route = useRoute();
 
-const toDisplayPosterUrl = (posterValue: string): string => {
-  if (!posterValue) return "/images/default-movie-poster.jpg";
-  if (/^https?:\/\//.test(posterValue) || posterValue.startsWith("/images/")) return posterValue;
-  const path = posterValue.startsWith("/") ? posterValue : `/${posterValue}`;
-  return `https://image.tmdb.org/t/p/w300${path}`;
-};
-
-const savedMovieToDbMovie = (movie: { id: number; title: string; posterUrl: string; rating: number; release: number | null; type: string; genres?: string[]; overview?: string; addedAt: number | string; }): DbMovie => ({
-  id: movie.id, title: movie.title, posterUrl: toDisplayPosterUrl(movie.posterUrl), rating: movie.rating,
-  release: movie.release, type: movie.type, genres: movie.genres ?? [], overview: movie.overview,
-  addedAt: new Date(movie.addedAt),
-});
-
 const { data: favoriteListData } = useConvexQuery(api.favoriteList.get);
 const { data: watchListData } = useConvexQuery(api.watchList.get);
 const favorites = computed<DbMovie[]>(() => (favoriteListData.value ?? []).map(savedMovieToDbMovie));
