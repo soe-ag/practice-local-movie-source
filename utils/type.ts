@@ -71,11 +71,24 @@ export type RecommendationItem = {
   reason?: string;
 };
 
+/** Why an AI request was answered with plain TMDB matches instead. */
+export type RecommendationFallbackReason =
+  | "rate_limited"
+  | "not_configured"
+  | "unavailable";
+
 export type RecommendationResponse = {
   source: "ai" | "tmdb";
   model?: string;
   recommendations: RecommendationItem[];
   notice?: string;
+  fallbackReason?: RecommendationFallbackReason;
 };
 
 export type RecommendationSource = RecommendationResponse["source"];
+
+export type SegmentedOption<V extends string = string> = {
+  value: V;
+  label: string;
+  icon?: string;
+};
