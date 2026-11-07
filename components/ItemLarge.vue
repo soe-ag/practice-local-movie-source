@@ -32,9 +32,7 @@ const chunkedList = computed(() => {
 </script>
 
 <template>
-  <div
-    class="flex flex-col gap-3 sm:gap-4 w-full pt-12 pb-0 px-2 overflow-x-hidden"
-  >
+  <div class="card-grid w-full overflow-x-hidden">
     <div
       v-for="(row, rowIndex) in chunkedList"
       :key="rowIndex"
@@ -73,34 +71,44 @@ const chunkedList = computed(() => {
               </div>
             </div>
             <div class="flex justify-end">
+              <!-- Shown on hover/focus with a mouse; always visible on touch screens. -->
               <div
-                class="bg-black/60 backdrop-blur-md p-2 rounded-tl-xl rounded-br-sm shadow-lg flex flex-col gap-2 items-center m-[-4px]"
+                class="card-actions bg-black/60 backdrop-blur-md p-1 rounded-tl-xl rounded-br-sm shadow-lg flex flex-col items-center m-[-4px]"
               >
-                <div v-if="props.isList" class="flex flex-col gap-2">
+                <div v-if="props.isList" class="flex flex-col">
                   <button
                     type="button"
-                    class="i-material-symbols-favorite text-gray-300 text-2xl cursor-pointer hover:text-red-500 transition-colors hover:animate-bounce"
+                    class="action-btn hover:text-red-500 hover:animate-bounce"
                     :aria-label="`Add ${item.title} to favorites`"
                     :title="`Add ${item.title} to favorites`"
                     @click.stop="emit('addMovie', item, 'favoriteList')"
-                  />
+                  >
+                    <span class="i-material-symbols-favorite text-2xl" aria-hidden="true" />
+                  </button>
 
                   <button
                     type="button"
-                    class="i-material-symbols-add-rounded text-gray-300 text-2xl cursor-pointer hover:text-green-500 transition-colors hover:animate-pulse"
+                    class="action-btn hover:text-green-500 hover:animate-pulse"
                     :aria-label="`Add ${item.title} to watchlist`"
                     :title="`Add ${item.title} to watchlist`"
                     @click.stop="emit('addMovie', item, 'watchList')"
-                  />
+                  >
+                    <span class="i-material-symbols-add-rounded text-2xl" aria-hidden="true" />
+                  </button>
                 </div>
                 <button
                   v-else
                   type="button"
-                  class="i-material-symbols-delete-forever-outline-rounded text-gray-300 text-2xl cursor-pointer hover:text-red-500 transition-colors hover:animate-pulse"
+                  class="action-btn hover:text-red-500 hover:animate-pulse"
                   :aria-label="`Remove ${item.title} from list`"
                   :title="`Remove ${item.title} from list`"
                   @click.stop="emit('removeFromList', item.id, item.type, item.title)"
-                />
+                >
+                  <span
+                    class="i-material-symbols-delete-forever-outline-rounded text-2xl"
+                    aria-hidden="true"
+                  />
+                </button>
               </div>
             </div>
           </div>
@@ -121,87 +129,109 @@ const chunkedList = computed(() => {
 </template>
 
 <style scoped>
+/*
+ * Phones (< 640px): a plain 2-column grid (3 from 480px). No overlap and no sideways
+ * scrolling, so every poster and its buttons are fully visible.
+ * The row wrappers vanish (display: contents) so all cards flow into one grid.
+ */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 12px;
+  padding: 16px 12px 0;
+}
 .stacked-row {
-  display: flex;
-  justify-content: flex-start;
-  align-items: flex-end;
-  width: 100%;
-  padding: 20px 20px;
-  overflow-x: auto;
-  scrollbar-width: none; /* Firefox */
-}
-.stacked-row::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
-}
-
-@media (min-width: 640px) {
-  .stacked-row {
-    justify-content: center;
-    padding: 10px 0;
-    overflow-x: visible;
-  }
+  display: contents;
 }
 .stacked-item {
-  width: 126px;
   position: relative;
-  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-  transform-origin: bottom center;
-  flex-shrink: 0;
+  min-width: 0;
   cursor: pointer;
 }
-/* Stacking overlap (approx 10% of card width) */
-.stacked-item:not(:first-child) {
-  margin-left: -13px;
+@media (min-width: 480px) {
+  .card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
+/*
+ * 640px and up: rows of 5 overlapping cards. The card width is derived from the row
+ * width so five cards always fit (fixed widths used to clip the first and last card
+ * on tablets), capped at --card-max on wide screens.
+ */
 @media (min-width: 640px) {
+  .card-grid {
+    --overlap: 14px;
+    --shift: 20px;
+    --card-max: 234px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 48px 8px 0;
+  }
+  .stacked-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    width: 100%;
+    padding: 10px 0;
+  }
   .stacked-item {
-    width: 160px;
+    width: min(var(--card-max), calc((100% + 4 * var(--overlap)) / 5));
+    flex-shrink: 0;
+    transform-origin: bottom center;
+    transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   }
+  /* Stacking overlap */
   .stacked-item:not(:first-child) {
-    margin-left: -16px;
-  }
-}
-@media (min-width: 768px) {
-  .stacked-item {
-    width: 198px;
-  }
-  .stacked-item:not(:first-child) {
-    margin-left: -20px;
+    margin-left: calc(-1 * var(--overlap));
   }
 }
 @media (min-width: 1024px) {
-  .stacked-item {
-    width: 234px;
-  }
-  .stacked-item:not(:first-child) {
-    margin-left: -23px;
+  .card-grid {
+    --overlap: 23px;
+    --shift: 35px;
   }
 }
 
-/* Hover effects for the target item */
-.stacked-item:hover {
-  transform: scale(1.1);
-  filter: drop-shadow(0 25px 25px rgb(0 0 0 / 0.4));
+/* Hover effects only for devices that can hover (a tap shouldn't leave a card enlarged). */
+@media (min-width: 640px) and (hover: hover) {
+  .stacked-item:hover {
+    transform: scale(1.1);
+    filter: drop-shadow(0 25px 25px rgb(0 0 0 / 0.4));
+  }
+  /* Push the cards after the hovered one to the right, so it stays fully visible */
+  .stacked-item:hover ~ .stacked-item {
+    transform: translateX(var(--shift));
+  }
 }
 
-/* Peer translate right: gracefully push items sitting AFTER (underneath visually) the hovered item rightward */
-.stacked-item:hover ~ .stacked-item {
-  transform: translateX(18px);
+/* Action buttons: 44px touch targets; with a mouse they appear on hover or keyboard focus. */
+.action-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: rgb(209 213 219); /* gray-300 */
+  cursor: pointer;
+  transition: color 0.2s;
 }
-@media (min-width: 640px) {
-  .stacked-item:hover ~ .stacked-item {
-    transform: translateX(22px);
+@media (hover: hover) and (pointer: fine) {
+  .action-btn {
+    width: 36px;
+    height: 36px;
   }
-}
-@media (min-width: 768px) {
-  .stacked-item:hover ~ .stacked-item {
-    transform: translateX(28px);
+  .card-actions {
+    opacity: 0;
+    transform: translateY(6px);
+    transition:
+      opacity 0.2s,
+      transform 0.2s;
   }
-}
-@media (min-width: 1024px) {
-  .stacked-item:hover ~ .stacked-item {
-    transform: translateX(35px);
+  .stacked-item:hover .card-actions,
+  .stacked-item:focus-within .card-actions {
+    opacity: 1;
+    transform: none;
   }
 }
 </style>

@@ -17,7 +17,7 @@ const isSearchPending = ref(false);
 const filters = ref<HomeFilters>({ ...DEFAULT_HOME_FILTERS });
 const filtersActive = computed(() => isHomeFilterActive(filters.value));
 
-const { data, error, pending, refresh } = await useAsyncData(
+const { data, error, pending } = await useAsyncData(
   "fetchPopularMovies",
   async () => {
     const current = filters.value;
@@ -89,7 +89,7 @@ const fetchSearchResults = async (page: number) => {
       params: { query: searchQuery.value, page },
     });
 
-    // Discard result if a newer search or a Trending reset has been triggered
+    // Discard result if a newer search started or the search was cleared
     if (searchId !== currentSearchId) return;
 
     isShowSearchResult.value = true;
@@ -109,29 +109,28 @@ const fetchSearchResults = async (page: number) => {
 
 // };
 
-const handleTrendingClick = () => {
+// Leave search results and go back to the browse list (with its filters and page
+// as they were). The popular/discover data is still loaded, so nothing refetches.
+const exitSearch = () => {
   currentSearchId++; // invalidate any in-flight search response
-  searchQuery.value = "";
   isShowSearchResult.value = false;
   isSearchPending.value = false;
   searchResults.value = [];
   searchCurrentPage.value = 1;
   searchFirst.value = 0;
-  popularFirst.value = 0;
-  // "Trending" returns to the default view, so clear any filters too. If neither the
-  // page nor the filters change, the watcher won't fire, so refresh() explicitly.
-  const needsRefresh = popularCurrentPage.value === 1 && !filtersActive.value;
-  filters.value = { ...DEFAULT_HOME_FILTERS };
-  popularCurrentPage.value = 1;
-  if (needsRefresh) refresh();
 };
 
+// Clearing the search box is the way back from search results.
+watch(searchQuery, (value) => {
+  if (!value.trim() && isShowSearchResult.value) exitSearch();
+});
+
 const handleEnter = async (event: KeyboardEvent) => {
-  if (event.key === "Enter") {
-    searchCurrentPage.value = 1;
-    searchFirst.value = 0;
-    await fetchSearchResults(1);
-  }
+  if (event.key !== "Enter") return;
+  if (!searchQuery.value.trim()) return; // the API rejects empty queries
+  searchCurrentPage.value = 1;
+  searchFirst.value = 0;
+  await fetchSearchResults(1);
 };
 
 const handlePopularPageChange = async (event: PageState) => {
@@ -172,24 +171,12 @@ const handleSearchPageChange = async (event: PageState) => {
 
       <!-- Action Buttons (Now on Right) -->
       <div class="flex gap-4">
-        <Button
-          label="Trending"
-          icon="i-material-symbols-kid-star-sharp"
-          class="!bg-gradient-to-r !from-orange-500 !to-red-500 hover:!from-orange-600 hover:!to-red-600 !border-transparent !text-white shadow-md transition-all duration-200"
-          size="small"
-          :pt="{
-            root: { class: '!py-1 !px-2' },
-            label: { class: 'max-md:text-[10px] !text-xs font-semibold' },
-            icon: { class: '!text-xs mr-1' },
-          }"
-          @click="handleTrendingClick"
-        />
-
         <InputText
           v-model="searchQuery"
-          type="text"
+          type="search"
           variant="filled"
           placeholder="Search for a movie"
+          aria-label="Search movies and TV series"
           size="small"
           @keydown="handleEnter"
         />
