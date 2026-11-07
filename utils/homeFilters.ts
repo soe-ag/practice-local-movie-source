@@ -1,7 +1,8 @@
 export type HomeMediaType = "movie" | "tv";
 
 export type HomeFilters = {
-  type: HomeMediaType;
+  /** "" shows this week's trending movies and TV together (the default view). */
+  type: HomeMediaType | "";
   /** TMDB genre id as a string, or "" for all genres. */
   genre: string;
   /** Minimum vote average as a string, or "" for any rating. */
@@ -11,7 +12,7 @@ export type HomeFilters = {
 };
 
 export const DEFAULT_HOME_FILTERS: HomeFilters = {
-  type: "movie",
+  type: "",
   genre: "",
   minRating: "",
   year: "",
@@ -25,7 +26,8 @@ export const HOME_YEAR_RANGES: Record<string, { from?: string; to: string }> = {
   "2020-2030": { from: "2020-01-01", to: "2030-12-31" },
 };
 
-export const HOME_TYPE_OPTIONS: { value: HomeMediaType; label: string }[] = [
+export const HOME_TYPE_OPTIONS: { value: HomeMediaType | ""; label: string }[] = [
+  { value: "", label: "Movies & TV" },
   { value: "movie", label: "Movies" },
   { value: "tv", label: "TV Series" },
 ];
@@ -37,7 +39,7 @@ export const HOME_MIN_RATING_OPTIONS = [
   { value: "8", label: "8+" },
 ];
 
-/** True when the filters differ from the default "popular movies" view. */
+/** True when the filters differ from the default "trending movies and TV" view. */
 export const isHomeFilterActive = (filters: HomeFilters): boolean =>
   filters.type !== DEFAULT_HOME_FILTERS.type ||
   filters.genre !== "" ||

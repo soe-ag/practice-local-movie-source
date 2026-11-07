@@ -9,6 +9,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     openrouterApiKey: process.env.OPENROUTER_API_KEY,
     tmdbApiKey: process.env.TMDB_API_KEY,
+    aiRecommendationLimitPerHour: process.env.AI_RECOMMENDATION_LIMIT_PER_HOUR,
   },
 
   modules: [

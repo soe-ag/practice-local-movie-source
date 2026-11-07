@@ -8,7 +8,11 @@ const emit = defineEmits<{
   "update:modelValue": [filters: HomeFilters];
 }>();
 
-const genres = computed(() => genresForType(props.modelValue.type));
+// Genre, rating and year need a media type: ids and /discover differ for movies vs TV.
+const needsType = computed(() => props.modelValue.type === "");
+const genres = computed(() =>
+  props.modelValue.type ? genresForType(props.modelValue.type) : [],
+);
 const active = computed(() => isHomeFilterActive(props.modelValue));
 
 const update = (patch: Partial<HomeFilters>) => {
@@ -17,7 +21,10 @@ const update = (patch: Partial<HomeFilters>) => {
 
 // Genre ids differ between movies and TV, so switching type clears the genre.
 const onTypeChange = (event: Event) => {
-  update({ type: (event.target as HTMLSelectElement).value as HomeMediaType, genre: "" });
+  update({
+    type: (event.target as HTMLSelectElement).value as HomeFilters["type"],
+    genre: "",
+  });
 };
 const onGenreChange = (event: Event) => {
   update({ genre: (event.target as HTMLSelectElement).value });
@@ -50,7 +57,8 @@ const selectClass =
     <select
       :value="modelValue.genre"
       :class="selectClass"
-      :disabled="disabled"
+      :disabled="disabled || needsType"
+      :title="needsType ? 'Pick Movies or TV Series first' : undefined"
       aria-label="Filter by genre"
       @change="onGenreChange"
     >
@@ -62,7 +70,8 @@ const selectClass =
     <select
       :value="modelValue.minRating"
       :class="selectClass"
-      :disabled="disabled"
+      :disabled="disabled || needsType"
+      :title="needsType ? 'Pick Movies or TV Series first' : undefined"
       aria-label="Filter by minimum rating"
       @change="onRatingChange"
     >
@@ -73,7 +82,8 @@ const selectClass =
     <select
       :value="modelValue.year"
       :class="selectClass"
-      :disabled="disabled"
+      :disabled="disabled || needsType"
+      :title="needsType ? 'Pick Movies or TV Series first' : undefined"
       aria-label="Filter by release year"
       @change="onYearChange"
     >
@@ -81,6 +91,9 @@ const selectClass =
         {{ o.label }}
       </option>
     </select>
+    <span v-if="needsType" class="text-xs text-gray-500 dark:text-gray-400">
+      Pick Movies or TV Series to filter by genre, rating or year
+    </span>
     <Button
       v-if="active"
       label="Reset"

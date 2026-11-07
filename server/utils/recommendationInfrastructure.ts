@@ -35,5 +35,14 @@ export const createWindowLimiter = (
       requestsByClient.set(clientKey, recent);
       return true;
     },
+    /** Milliseconds until the client has a free slot again (0 if it has one now). */
+    async retryAfterMs(clientKey: string) {
+      const currentTime = now();
+      const recent = (requestsByClient.get(clientKey) ?? []).filter(
+        (timestamp) => timestamp > currentTime - windowMs,
+      );
+      if (recent.length < limit) return 0;
+      return Math.max(0, recent[recent.length - limit]! + windowMs - currentTime);
+    },
   };
 };

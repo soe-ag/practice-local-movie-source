@@ -22,9 +22,9 @@ const { data, error, pending } = await useAsyncData(
   async () => {
     const current = filters.value;
     try {
-      // Default view keeps the plain popular list; any filter switches to /discover,
-      // which filters before paginating so page counts stay correct.
-      const raw = isHomeFilterActive(current)
+      // Default view: this week's trending movies and TV. Choosing a type (or any filter)
+      // switches to /discover, which filters before paginating so page counts stay correct.
+      const raw = current.type && isHomeFilterActive(current)
         ? await $fetch<RawMovieWithTotal>("/api/tmdb/discover", {
             params: {
               type: current.type,
@@ -34,11 +34,12 @@ const { data, error, pending } = await useAsyncData(
               page: popularCurrentPage.value,
             },
           })
-        : await $fetch<RawMovieWithTotal>("/api/tmdb/popular", {
+        : await $fetch<RawMovieWithTotal>("/api/tmdb/trending", {
             params: { page: popularCurrentPage.value },
           });
-      // Keep the media type with the data: /discover results carry no media_type.
-      return { raw, mediaType: current.type };
+      // /discover results carry no media_type, so keep the type with the data. Trending
+      // results include their own media_type, which wins over this fallback.
+      return { raw, mediaType: current.type || "movie" };
     } catch (err) {
       console.error("Error fetching popular movies:", err);
       throw err;
@@ -50,7 +51,7 @@ const { data, error, pending } = await useAsyncData(
 );
 
 const homeTitle = computed(() => {
-  if (!filtersActive.value) return "Trending Movies";
+  if (!filters.value.type) return "Trending This Week";
   return filters.value.type === "tv" ? "Popular TV Series" : "Popular Movies";
 });
 

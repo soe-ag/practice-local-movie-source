@@ -13,8 +13,23 @@ import {
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const LIMIT_WINDOW_MS = 60 * 60 * 1000;
+// Uncached AI requests allowed per client per hour. Override with
+// AI_RECOMMENDATION_LIMIT_PER_HOUR; the default is generous in development
+// (so testing doesn't hit the limit) and strict in production.
+const DEFAULT_LIMIT_PER_HOUR = process.env.NODE_ENV === "production" ? 5 : 100;
 const cache = createTtlCache<RecommendationResponse>(CACHE_TTL_MS);
-const limiter = createWindowLimiter(5, LIMIT_WINDOW_MS);
+
+let limiter: ReturnType<typeof createWindowLimiter> | undefined;
+const getLimiter = (configured: unknown) => {
+  if (!limiter) {
+    const limit = Number(configured);
+    limiter = createWindowLimiter(
+      Number.isInteger(limit) && limit > 0 ? limit : DEFAULT_LIMIT_PER_HOUR,
+      LIMIT_WINDOW_MS,
+    );
+  }
+  return limiter;
+};
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<{ id?: unknown; type?: unknown }>(event);
@@ -38,7 +53,8 @@ export default defineEventHandler(async (event) => {
     ...tmdb,
     ...openRouter,
     cache,
-    limiter,
+    limiter: getLimiter(config.aiRecommendationLimitPerHour),
+    log: (message) => console.warn(message),
   });
 
   return service.recommend(

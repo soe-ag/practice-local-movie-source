@@ -12,7 +12,6 @@ import type {
 import {
   buildRecommendations,
   mapRecommendationItemsToCandidates,
-  matchesRecommendationFilters,
   mediaKey,
   paginateRecommendations,
   recommendationEndpoint,
@@ -64,9 +63,6 @@ export const useRecommendations = (options: {
   const searchQuery = ref("");
   const searchResults = ref<DbMovie[]>([]);
   const isSearchPending = ref(false);
-  const filterType = ref(typeof route.query.mediaType === "string" ? route.query.mediaType : "");
-  const filterRating = ref(typeof route.query.rating === "string" ? route.query.rating : "");
-  const filterGenre = ref(typeof route.query.genre === "string" ? route.query.genre : "");
   const resultPage = ref(1);
   const resultFirst = ref(0);
   const tabState = reactive<Record<RecommendationTab, TabState>>({
@@ -99,43 +95,18 @@ export const useRecommendations = (options: {
     const response = currentState.value.response;
     if (response) {
       return recommendationCandidates(response)
-        .filter((candidate) => !excludedKeys.value.has(mediaKey(candidate)))
-        .filter((candidate) =>
-          matchesRecommendationFilters(candidate, {
-            type: filterType.value,
-            rating: filterRating.value,
-            genre: filterGenre.value,
-          }),
-        );
+        .filter((candidate) => !excludedKeys.value.has(mediaKey(candidate)));
     }
     return buildRecommendations({
       groups: currentState.value.groups,
       excludedKeys: excludedKeys.value,
-      filters: {
-        type: filterType.value,
-        rating: filterRating.value,
-        genre: filterGenre.value,
-      },
     });
   });
-  const unfilteredRecommendations = computed<RecommendationCandidate[]>(() =>
-    currentState.value.response
-      ? recommendationCandidates(currentState.value.response).filter(
-          (candidate) => !excludedKeys.value.has(mediaKey(candidate)),
-        )
-      : buildRecommendations({
-          groups: currentState.value.groups,
-          excludedKeys: excludedKeys.value,
-        }),
-  );
   const paginatedRecommendations = computed(() =>
     paginateRecommendations(rankedRecommendations.value, resultPage.value),
   );
 
-  const resetFilters = () => {
-    filterType.value = "";
-    filterRating.value = "";
-    filterGenre.value = "";
+  const resetResultPage = () => {
     resultPage.value = 1;
     resultFirst.value = 0;
   };
@@ -234,18 +205,11 @@ export const useRecommendations = (options: {
     }
   };
 
-  watch([filterType, filterRating, filterGenre], () => {
-    resultPage.value = 1;
-    resultFirst.value = 0;
-  });
-  watch([activeTab, recommendationSource, filterType, filterRating, filterGenre, currentSeeds], () => {
+  watch([activeTab, recommendationSource, currentSeeds], () => {
     const query: Record<string, string> = {
       tab: activeTab.value,
       source: recommendationSource.value,
     };
-    if (filterType.value) query.mediaType = filterType.value;
-    if (filterRating.value) query.rating = filterRating.value;
-    if (filterGenre.value) query.genre = filterGenre.value;
     const seed = currentSeeds.value[0];
     if (seed && activeTab.value === "forYou") {
       query.seedId = String(seed.id);
@@ -258,7 +222,7 @@ export const useRecommendations = (options: {
     router.replace({ query });
   }, { flush: "post" });
   watch(activeTab, () => {
-    resetFilters();
+    resetResultPage();
     searchResults.value = [];
   });
   watch(recommendationSource, () => {
@@ -287,16 +251,11 @@ export const useRecommendations = (options: {
     searchQuery,
     searchResults,
     isSearchPending,
-    filterType,
-    filterRating,
-    filterGenre,
     currentSeeds,
     currentState,
     rankedRecommendations,
-    unfilteredRecommendations,
     paginatedRecommendations,
     resultFirst,
-    resetFilters,
     toggleFavoriteSeed,
     addManualSeed,
     removeManualSeed,
