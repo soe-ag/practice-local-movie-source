@@ -1,6 +1,6 @@
 # Practice Local Movie Source
 
-A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themoviedb.org/) and [Convex](https://www.convex.dev/).
+A Nuxt 4 movie browsing application powered by the [TMDB API](https://www.themoviedb.org/) and [Convex](https://www.convex.dev/).
 
 ## Features
 
@@ -44,9 +44,16 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 │   ├── itemDumb.vue     # Small/compact movie card
 │   ├── ItemSkeleton.vue     # Loading skeleton (small)
 │   ├── ItemSkeletonLarge.vue # Loading skeleton (large)
+│   ├── SavedListView.vue # Filter/sort toolbar + grid for Favorite and Watch List
 │   └── MovieDrawer.vue  # Side drawer with movie details
 ├── composables/
-│   └── useMovieDrawer.ts  # Composable for drawer open/close state
+│   ├── useMovieDrawer.ts  # Composable for drawer open/close state
+│   ├── useRecommendations.ts # Recommendation page state and loading
+│   └── useSavedListView.ts   # Filter/sort state for saved lists
+├── server/
+│   ├── api/tmdb/        # Proxy routes (popular, top-rated, search, title)
+│   ├── api/recommendations/ # TMDB-based and AI recommendation endpoints
+│   └── utils/           # TMDB proxy helper, AI/TMDB recommendation services
 ├── convex/              # Convex backend functions and schema
 │   ├── schema.ts        # Database schema (watchList, favoriteList tables)
 │   ├── watchList.ts     # Watch list queries and mutations
@@ -54,6 +61,7 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 ├── utils/
 │   ├── type.ts          # Shared TypeScript types
 │   ├── utils.ts         # convertToDbType helper
+│   ├── savedList.ts     # Saved-list filtering, sorting, poster URL helpers
 │   ├── recommendations.ts # Ranking, filtering, and pagination
 │   ├── recommendationLoader.ts # Concurrent loading and session cache
 │   └── genres.ts        # TMDB genre ID → name mapping
@@ -67,7 +75,7 @@ A Nuxt 3 movie browsing application powered by the [TMDB API](https://www.themov
 
 ## Tech Stack
 
-- [Nuxt 3](https://nuxt.com/) — Vue-based full-stack framework
+- [Nuxt 4](https://nuxt.com/) — Vue-based full-stack framework
 - [Convex](https://www.convex.dev/) — real-time database backend
 - [PrimeVue](https://primevue.org/) — UI component library
 - [UnoCSS](https://unocss.dev/) — utility-first CSS engine
@@ -90,6 +98,8 @@ TMDB_API_KEY=your_tmdb_api_key
 OPENROUTER_API_KEY=your_openrouter_api_key
 CONVEX_URL=your_convex_deployment_url
 ```
+
+`TMDB_API_KEY` and `OPENROUTER_API_KEY` are server-only: the browser never calls TMDB directly, it goes through the `/api/tmdb/*` routes.
 
 To get your `CONVEX_URL`, run `pnpm exec convex dev` and copy the deployment URL from the output.
 
