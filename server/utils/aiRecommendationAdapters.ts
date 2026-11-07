@@ -2,6 +2,7 @@ import { convertToDbType } from "~/utils/utils";
 import type { RawMovieWithTotal, MediaType } from "~/utils/type";
 import {
   AI_RECOMMENDATION_TIMEOUT_MS,
+  AiNotConfiguredError,
   type AiCandidate,
   type AiSeedDetails,
 } from "~/server/utils/aiRecommendationService";
@@ -153,7 +154,7 @@ export const createTmdbAdapter = (apiKey: string) => {
 
 export const createOpenRouterAdapter = (apiKey: string) => ({
   async generateCandidates(seed: AiSeedDetails, model: string) {
-    if (!apiKey) throw new Error("OPENROUTER_API_KEY is not configured");
+    if (!apiKey) throw new AiNotConfiguredError();
     const response = await $fetch<OpenRouterResponse>(OPENROUTER_URL, {
       method: "POST",
       timeout: AI_RECOMMENDATION_TIMEOUT_MS,

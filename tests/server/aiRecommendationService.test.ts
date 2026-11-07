@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { createAiRecommendationService } from "~/server/utils/aiRecommendationService";
+import {
+  AiNotConfiguredError,
+  createAiRecommendationService,
+} from "~/server/utils/aiRecommendationService";
 import type { DbMovie } from "~/utils/type";
 
 const movie = (id: number, title: string): DbMovie => ({
@@ -187,6 +190,100 @@ describe("AI recommendation service", () => {
       source: "tmdb",
       recommendations: [{ movie: fallbackMovie }],
       notice: "AI recommendations are unavailable, so standard TMDB matches are shown.",
+      fallbackReason: "unavailable",
+    });
+  });
+
+  describe("fallback reasons", () => {
+    const seed = {
+      id: 99,
+      type: "movie" as const,
+      title: "Seed",
+      release: 2024,
+      overview: "Overview",
+      genres: [],
+      keywords: [],
+      creators: [],
+      cast: [],
+    };
+    const build = (overrides: Partial<Parameters<typeof createAiRecommendationService>[0]>) =>
+      createAiRecommendationService({
+        loadSeed: vi.fn(async () => seed),
+        generateCandidates: vi.fn(),
+        resolveCandidate: vi.fn(),
+        loadFallback: vi.fn(async () => [movie(7, "Fallback")]),
+        cache: { get: vi.fn(async () => null), set: vi.fn(async () => undefined) },
+        limiter: { consume: vi.fn(async () => true) },
+        ...overrides,
+      });
+
+    it("reports the rate limit with the wait time and never calls the models", async () => {
+      const generateCandidates = vi.fn();
+      const log = vi.fn();
+      const result = await build({
+        generateCandidates,
+        limiter: {
+          consume: vi.fn(async () => false),
+          retryAfterMs: vi.fn(async () => 25 * 60_000 + 1),
+        },
+        log,
+      }).recommend({ id: 99, type: "movie" }, "client-1");
+
+      expect(result).toMatchObject({
+        source: "tmdb",
+        fallbackReason: "rate_limited",
+        notice:
+          "AI picks limit reached. Try again in about 26 min. Showing standard TMDB matches for now.",
+      });
+      expect(generateCandidates).not.toHaveBeenCalled();
+      expect(log).toHaveBeenCalledWith(expect.stringContaining("(rate_limited)"));
+      expect(log).toHaveBeenCalledWith(expect.stringContaining("client-1"));
+    });
+
+    it("says to try later when the limiter cannot report a wait time", async () => {
+      const result = await build({
+        limiter: { consume: vi.fn(async () => false) },
+      }).recommend({ id: 99, type: "movie" }, "client");
+      expect(result.notice).toContain("Try again later.");
+    });
+
+    it("reports a missing API key when every model is unconfigured", async () => {
+      const log = vi.fn();
+      const result = await build({
+        generateCandidates: vi.fn(async () => {
+          throw new AiNotConfiguredError();
+        }),
+        log,
+      }).recommend({ id: 99, type: "movie" }, "client");
+
+      expect(result).toMatchObject({
+        fallbackReason: "not_configured",
+        notice: expect.stringContaining("OPENROUTER_API_KEY"),
+      });
+      expect(log).toHaveBeenCalledWith(expect.stringContaining("(not_configured)"));
+    });
+
+    it("logs which model failed and why, without leaking secrets", async () => {
+      const log = vi.fn();
+      const httpError = Object.assign(
+        new Error('[GET] "https://api.themoviedb.org/3/search?api_key=SECRET123&q=x": 401'),
+        { statusCode: 401, data: { error: { message: "Bearer abc.def invalid" } } },
+      );
+      const result = await build({
+        generateCandidates: vi.fn(async (_seed, model) => {
+          if (model.startsWith("nvidia/nemotron-3-ultra")) throw httpError;
+          throw new Error("Timeout after 10000ms");
+        }),
+        log,
+      }).recommend({ id: 99, type: "movie" }, "client");
+
+      expect(result.fallbackReason).toBe("unavailable");
+      const line = String(log.mock.calls[0]?.[0]);
+      expect(line).toContain("nvidia/nemotron-3-ultra-550b-a55b:free: ");
+      expect(line).toContain("(HTTP 401)");
+      expect(line).toContain("openrouter/free: Timeout after 10000ms");
+      expect(line).not.toContain("SECRET123");
+      expect(line).not.toContain("abc.def");
     });
   });
 

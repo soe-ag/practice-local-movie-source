@@ -99,6 +99,8 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 CONVEX_URL=your_convex_deployment_url
 ```
 
+Optional: `AI_RECOMMENDATION_LIMIT_PER_HOUR` caps how many uncached AI recommendation requests each client can make per hour (default `100` in development, `5` in production). When AI is unavailable (limit reached, missing key, or all models failing) the page shows plain TMDB matches with a message saying why, and the server logs the exact reason (`[ai-recommendations] fell back to TMDB ...`). Restart the dev server after changing `.env`.
+
 `TMDB_API_KEY` and `OPENROUTER_API_KEY` are server-only: the browser never calls TMDB directly, it goes through the `/api/tmdb/*` routes.
 
 To get your `CONVEX_URL`, run `pnpm exec convex dev` and copy the deployment URL from the output.

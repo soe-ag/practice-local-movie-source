@@ -27,4 +27,30 @@ describe("recommendation infrastructure", () => {
     now += 60 * 60 * 1000 + 1;
     await expect(limiter.consume("client")).resolves.toBe(true);
   });
+
+  it("reports when a rate-limited client gets a free slot again", async () => {
+    const hour = 60 * 60 * 1000;
+    let now = 1_000;
+    const limiter = createWindowLimiter(2, hour, () => now);
+
+    await expect(limiter.retryAfterMs("client")).resolves.toBe(0);
+    await limiter.consume("client"); // at t=1000
+    now = 11_000;
+    await limiter.consume("client"); // at t=11000
+    await expect(limiter.consume("client")).resolves.toBe(false);
+
+    now = 21_000;
+    // the oldest request (t=1000) expires at 1000 + 1h
+    await expect(limiter.retryAfterMs("client")).resolves.toBe(1_000 + hour - 21_000);
+    now = 1_000 + hour + 1;
+    await expect(limiter.retryAfterMs("client")).resolves.toBe(0);
+  });
+
+  it("honours a configured limit", async () => {
+    const limiter = createWindowLimiter(100, 60 * 60 * 1000, () => 0);
+    for (let request = 0; request < 100; request += 1) {
+      await expect(limiter.consume("client")).resolves.toBe(true);
+    }
+    await expect(limiter.consume("client")).resolves.toBe(false);
+  });
 });
