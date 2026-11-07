@@ -15,6 +15,26 @@ export const parsePage = (value: unknown): number => {
   return page;
 };
 
+export type TrendingWindow = "day" | "week";
+
+/** Defaults to the weekly trending list. */
+export const parseTrendingWindow = (value: unknown): TrendingWindow => {
+  const window = Array.isArray(value) ? value[0] : value;
+  if (window === undefined || window === "") return "week";
+  if (window === "day" || window === "week") return window;
+  throw createError({ statusCode: 400, statusMessage: "Invalid trending window." });
+};
+
+/** TMDB's "all" trending feed can also contain people; keep only movies and TV. */
+export const keepMoviesAndTv = <T extends { results: Array<{ media_type?: string }> }>(
+  response: T,
+): T => ({
+  ...response,
+  results: response.results.filter(
+    (item) => item.media_type === "movie" || item.media_type === "tv",
+  ),
+});
+
 export const parseMediaType = (value: unknown): TmdbMediaType => {
   if (value === "movie" || value === "tv") return value;
   throw createError({ statusCode: 400, statusMessage: "Invalid media type." });
@@ -49,9 +69,12 @@ export const tmdbRequest = async <T>(
     throw createError({ statusCode: 500, statusMessage: "TMDB is not configured." });
   }
   try {
-    return await $fetch<T>(`${TMDB_BASE_URL}${path}`, {
+    // Cast: Nitro's typed $fetch can't express a caller-chosen response type for an
+    // external URL, so the generic is applied here instead.
+    const response: unknown = await $fetch(`${TMDB_BASE_URL}${path}`, {
       params: { api_key: tmdbApiKey, language: "en-US", ...params },
     });
+    return response as T;
   } catch (error) {
     const status = (error as { statusCode?: number; status?: number }).statusCode
       ?? (error as { status?: number }).status;
