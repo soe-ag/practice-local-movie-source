@@ -1,7 +1,54 @@
 <script setup lang="ts">
+import { useToast } from "primevue/usetoast";
+import { api } from "~/convex/_generated/api";
 import { useMovieDrawer } from "~/composables/useMovieDrawer";
 
-const { isDrawerOpen, selectedMovie, closeDrawer } = useMovieDrawer();
+const { isDrawerOpen, selectedMovie, showAddActions, closeDrawer } = useMovieDrawer();
+const toast = useToast();
+const isAddingTo = ref<"watchList" | "favoriteList" | null>(null);
+const { mutate: addToWatchList } = useConvexMutation(api.watchList.add);
+const { mutate: addToFavoriteList } = useConvexMutation(api.favoriteList.add);
+
+const addToList = async (list: "watchList" | "favoriteList") => {
+  const movie = selectedMovie.value;
+  if (!movie || isAddingTo.value) return;
+
+  isAddingTo.value = list;
+  try {
+    const movieData = {
+      id: movie.id,
+      title: movie.title,
+      posterUrl: movie.posterUrl,
+      rating: movie.rating,
+      release: movie.release,
+      type: movie.type,
+      genres: movie.genres,
+      overview: movie.overview,
+    };
+
+    if (list === "watchList") {
+      await addToWatchList(movieData);
+    } else {
+      await addToFavoriteList(movieData);
+    }
+
+    toast.add({
+      severity: "success",
+      summary: "Added",
+      detail: `${movie.title} added to ${list === "watchList" ? "watch list" : "favorites"}.`,
+      life: 3000,
+    });
+  } catch (error) {
+    toast.add({
+      severity: "error",
+      summary: "Could not add title",
+      detail: error instanceof Error ? error.message : "Please try again.",
+      life: 3000,
+    });
+  } finally {
+    isAddingTo.value = null;
+  }
+};
 
 const movieTypeLabel = computed(() => {
   if (!selectedMovie.value?.type) return "Movie";
@@ -55,10 +102,32 @@ const ratingText = computed(() => {
       </div>
 
       <div class="px-5 py-5 sm:px-6 sm:py-6 overflow-y-auto">
-        <div
-          class="text-2xl font-bold leading-tight text-gray-900 dark:text-white"
-        >
-          {{ selectedMovie.title }}
+        <div class="mb-3 flex items-start justify-between gap-4">
+          <div class="min-w-0 text-2xl font-bold leading-tight text-gray-900 dark:text-white">
+            {{ selectedMovie.title }}
+          </div>
+          <div v-if="showAddActions" class="flex shrink-0 gap-2">
+            <button
+              type="button"
+              class="flex items-center justify-center h-10 w-10 rounded-full bg-white/10 text-gray-700 hover:bg-green-500/20 hover:text-green-600 dark:text-gray-100 dark:hover:text-green-300 transition-colors cursor-pointer disabled:opacity-50"
+              :aria-label="`Add ${selectedMovie.title} to watch list`"
+              title="Add to watch list"
+              :disabled="isAddingTo !== null"
+              @click="addToList('watchList')"
+            >
+              <span class="i-material-symbols-add-rounded text-2xl" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="flex items-center justify-center h-10 w-10 rounded-full bg-white/10 text-gray-700 hover:bg-red-500/20 hover:text-red-600 dark:text-gray-100 dark:hover:text-red-300 transition-colors cursor-pointer disabled:opacity-50"
+              :aria-label="`Add ${selectedMovie.title} to favorites`"
+              title="Add to favorites"
+              :disabled="isAddingTo !== null"
+              @click="addToList('favoriteList')"
+            >
+              <span class="i-material-symbols-favorite text-xl" aria-hidden="true" />
+            </button>
+          </div>
         </div>
         <div class="mt-3 mb-5 flex flex-wrap items-center gap-2">
           <span

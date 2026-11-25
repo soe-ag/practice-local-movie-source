@@ -48,7 +48,7 @@ const chunkedList = computed(() => {
       >
         <div
           class="relative overflow-hidden rounded-lg transition-all duration-300 w-full aspect-[2/3] flex-shrink-0 cursor-pointer"
-          @click="openDrawer(item)"
+          @click="openDrawer(item, props.isList)"
         >
           <NuxtImg
             :src="item.posterUrl"

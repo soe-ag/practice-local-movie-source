@@ -6,9 +6,11 @@ export const useMovieDrawer = () => {
     "movie-drawer-movie",
     () => null,
   );
+  const showAddActions = useState<boolean>("movie-drawer-show-add-actions", () => true);
 
-  const openDrawer = (movie: DbMovie) => {
+  const openDrawer = (movie: DbMovie, canAddToLists = true) => {
     selectedMovie.value = movie;
+    showAddActions.value = canAddToLists;
     isDrawerOpen.value = true;
   };
 
@@ -19,6 +21,7 @@ export const useMovieDrawer = () => {
   return {
     isDrawerOpen,
     selectedMovie,
+    showAddActions,
     openDrawer,
     closeDrawer,
   };
