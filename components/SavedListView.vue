@@ -60,24 +60,34 @@ const gridClass =
         />
       </div>
 
-      <div class="flex gap-4 items-center">
-        <div class="font-semibold text-gray-400">Sorted By:</div>
+      <div class="flex flex-wrap gap-4 items-center">
+        <div class="flex gap-4 items-center">
+          <div class="font-semibold text-gray-400">Sorted By:</div>
+          <div
+            v-for="option in sortOptions"
+            :key="option.key"
+            class="cursor-pointer hover:text-blue flex items-center"
+            :class="{ 'font-bold text-blue': sort?.key === option.key }"
+            @click="setSort(option.key)"
+          >
+            {{ option.label }}
+            <div
+              v-if="sort?.key === option.key && sort.direction === 'ascending'"
+              class="i-material-symbols-arrow-upward-alt"
+            />
+            <div
+              v-if="sort?.key === option.key && sort.direction === 'descending'"
+              class="i-material-symbols-arrow-downward-alt"
+            />
+          </div>
+        </div>
         <div
-          v-for="option in sortOptions"
-          :key="option.key"
-          class="cursor-pointer hover:text-blue flex items-center"
-          :class="{ 'font-bold text-blue': sort?.key === option.key }"
-          @click="setSort(option.key)"
+          v-if="!pending"
+          class="rounded-full border border-gray-200 bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-gray-300"
+          aria-live="polite"
         >
-          {{ option.label }}
-          <div
-            v-if="sort?.key === option.key && sort.direction === 'ascending'"
-            class="i-material-symbols-arrow-upward-alt"
-          />
-          <div
-            v-if="sort?.key === option.key && sort.direction === 'descending'"
-            class="i-material-symbols-arrow-downward-alt"
-          />
+          {{ visibleList.length }}<span v-if="visibleList.length !== props.list.length"> / {{ props.list.length }}</span>
+          {{ visibleList.length === 1 ? "title" : "titles" }}
         </div>
       </div>
     </div>

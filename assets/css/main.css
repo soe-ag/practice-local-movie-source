@@ -15,6 +15,17 @@
   }
 }
 
+/* Use the project's text font throughout the app and PrimeVue components. */
+html,
+body,
+button,
+input,
+select,
+textarea,
+.p-component:not(.pi) {
+  font-family: "Rethink Sans", sans-serif !important;
+}
+
 /* Global Paginator overrides - lock to project soft red/orange theme */
 html body .p-paginator .p-paginator-pages .p-paginator-page.p-highlight,
 html body .p-paginator .p-paginator-pages .p-paginator-page[data-p-highlight="true"],

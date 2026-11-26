@@ -24,7 +24,7 @@ const { openDrawer } = useMovieDrawer();
     <!-- max-md:w-36 max-md:h-58 -->
     <div
       class="relative group overflow-hidden rounded-lg shadow-md transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] w-full h-56 flex-shrink-0 cursor-pointer"
-      @click="openDrawer(item)"
+      @click="openDrawer(item, props.isList)"
     >
       <NuxtImg
         :src="item.posterUrl"
