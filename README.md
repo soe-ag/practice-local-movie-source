@@ -17,6 +17,10 @@ A Nuxt 4 movie browsing application powered by the [TMDB API](https://www.themov
 - Deterministic recommendation ranking and saved-list exclusions
 - Dark mode support
 
+## AI Agent API
+
+The read-only watchlist and favorites API is documented in [AI_AGENT_API.md](./AI_AGENT_API.md).
+
 ## Pages
 
 | Route              | Description                                            |
