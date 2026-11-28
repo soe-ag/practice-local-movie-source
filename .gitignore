@@ -26,5 +26,4 @@ logs
 # pnpm content store
 .pnpm-store
 
-.vercel
-.env*
+.vercel/
